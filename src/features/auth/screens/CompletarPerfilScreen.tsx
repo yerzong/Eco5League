@@ -186,7 +186,9 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             {/* Redes sociales */}
             <View style={styles.field}>
               <FieldLabel label="Redes sociales" optional />
-              <Pressable style={styles.addSocial}>
+              <Pressable
+                style={styles.addSocial}
+                onPress={() => navigation.navigate('RedesSocialesModal')}>
                 <IconPlus size={18} color={theme.colors.textSecondary} strokeWidth={2} />
                 <Txt variant="button" color="textSecondary">
                   Agregar red social

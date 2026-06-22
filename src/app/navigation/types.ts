@@ -10,6 +10,7 @@ export type OnboardingStackParamList = {
   CrearCuenta: undefined;
   CompletarPerfil: undefined;
   VerificarOtp: { phone?: string } | undefined;
+  RedesSocialesModal: undefined;
 };
 
 export type AppTabParamList = Record<TabKey, undefined>;

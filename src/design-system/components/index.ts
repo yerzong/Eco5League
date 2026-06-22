@@ -12,3 +12,4 @@ export { Eyebrow } from './Eyebrow';
 export { BackButton } from './BackButton';
 export { SectionLabel } from './SectionLabel';
 export { SelectField } from './SelectField';
+export { BottomSheet } from './BottomSheet';

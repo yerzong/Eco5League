@@ -30,6 +30,14 @@ export {
   IconPhone,
   IconPlus,
   IconCircleCheck,
+  IconX,
+  // Marcas de redes sociales
+  IconBrandTiktok,
+  IconBrandFacebook,
+  IconBrandYoutube,
+  IconBrandX,
+  IconBrandTwitch,
+  IconWorld,
 } from '@tabler/icons-react-native';
 
 export type { IconProps } from '@tabler/icons-react-native';

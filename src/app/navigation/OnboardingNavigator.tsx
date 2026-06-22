@@ -10,6 +10,7 @@ import { LoginScreen } from '@/features/auth/screens/LoginScreen';
 import { CrearCuentaScreen } from '@/features/auth/screens/CrearCuentaScreen';
 import { CompletarPerfilScreen } from '@/features/auth/screens/CompletarPerfilScreen';
 import { VerificarOtpScreen } from '@/features/auth/screens/VerificarOtpScreen';
+import { RedesSocialesScreen } from '@/features/auth/screens/RedesSocialesScreen';
 import type { OnboardingStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<OnboardingStackParamList>();
@@ -23,6 +24,11 @@ export function OnboardingNavigator() {
       <Stack.Screen name="CrearCuenta" component={CrearCuentaScreen} />
       <Stack.Screen name="CompletarPerfil" component={CompletarPerfilScreen} />
       <Stack.Screen name="VerificarOtp" component={VerificarOtpScreen} />
+      <Stack.Screen
+        name="RedesSocialesModal"
+        component={RedesSocialesScreen}
+        options={{ presentation: 'transparentModal', animation: 'fade' }}
+      />
     </Stack.Navigator>
   );
 }
