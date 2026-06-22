@@ -38,6 +38,7 @@ export {
   IconBrandX,
   IconBrandTwitch,
   IconWorld,
+  IconMessage,
 } from '@tabler/icons-react-native';
 
 export type { IconProps } from '@tabler/icons-react-native';

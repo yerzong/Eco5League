@@ -177,7 +177,9 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                     keyboardType="phone-pad"
                   />
                 </View>
-                <Pressable style={styles.otpBtn}>
+                <Pressable
+                  style={styles.otpBtn}
+                  onPress={() => navigation.navigate('VerificarOtp')}>
                   <Txt style={styles.otpBtnText}>Enviar OTP</Txt>
                 </Pressable>
               </View>
