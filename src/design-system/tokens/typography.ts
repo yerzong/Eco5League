@@ -9,6 +9,8 @@ export const fonts = {
   display: 'Oswald-Bold',
   heading: 'Oswald-SemiBold',
   headingBold: 'Oswald-Bold',
+  /** Oswald Medium — para metas/etiquetas pequeñas en mayúsculas. */
+  meta: 'Oswald-Medium',
   button: 'Oswald-SemiBold',
   body: 'Inter-Regular',
   bodyMedium: 'Inter-Medium',

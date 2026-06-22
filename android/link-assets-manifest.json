@@ -1,0 +1,29 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/Inter-Medium.ttf",
+      "sha1": "c1b6415761a135ace6ba8e0eda5b2fd8ff44110a"
+    },
+    {
+      "path": "assets/fonts/Inter-Regular.ttf",
+      "sha1": "4653b948577a7e42c55584e956040caa7e7790f5"
+    },
+    {
+      "path": "assets/fonts/Inter-SemiBold.ttf",
+      "sha1": "328397b7d344bf5d04ccc40bf0ceec1bd9ec5caa"
+    },
+    {
+      "path": "assets/fonts/Oswald-Bold.ttf",
+      "sha1": "e725b3e9fc9a3f3f86e7a36732b056fe4d999d1e"
+    },
+    {
+      "path": "assets/fonts/Oswald-Medium.ttf",
+      "sha1": "ab25d2dc101db13119f1fde5e84dc9dd02706bf8"
+    },
+    {
+      "path": "assets/fonts/Oswald-SemiBold.ttf",
+      "sha1": "acefc84985130ffcb17a6e442889928a5465bff8"
+    }
+  ]
+}
