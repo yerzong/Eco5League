@@ -4,6 +4,7 @@
  */
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +15,10 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  removeBackground,
+  hasBackgroundRemover,
+} from '@/shared/native/backgroundRemover';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Txt,
@@ -73,6 +78,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   const [pais, setPais] = useState('');
   const [gamertag, setGamertag] = useState('');
   const [photo, setPhoto] = useState<string>();
+  const [processingPhoto, setProcessingPhoto] = useState(false);
   const [socials, setSocials] = useState<AddedSocial[]>([]);
 
   const pickPhoto = async () => {
@@ -82,7 +88,20 @@ export function CompletarPerfilScreen({ navigation }: Props) {
       quality: 0.9,
     });
     const uri = res.assets?.[0]?.uri;
-    if (uri) setPhoto(uri);
+    if (!uri) return;
+    setPhoto(uri); // muestra la original de inmediato
+    // Intenta recortar el fondo (PNG limpio). Si falla, conserva la original.
+    if (hasBackgroundRemover) {
+      setProcessingPhoto(true);
+      try {
+        const cutout = await removeBackground(uri);
+        setPhoto(cutout);
+      } catch {
+        // sin sujeto detectado o no disponible: se queda la foto original
+      } finally {
+        setProcessingPhoto(false);
+      }
+    }
   };
 
   // Progreso = campos requeridos completados / total (correo viene precargado).
@@ -154,6 +173,11 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                 ) : (
                   <IconCamera size={26} color={theme.colors.textSecondary} strokeWidth={1.75} />
                 )}
+                {processingPhoto ? (
+                  <View style={styles.photoLoading}>
+                    <ActivityIndicator color={theme.colors.textPrimary} />
+                  </View>
+                ) : null}
               </Pressable>
               <View style={styles.photoText}>
                 <View style={styles.fieldLabelRow}>
@@ -398,6 +422,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   photoImg: { width: '100%', height: '100%' },
+  photoLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
   photoText: { flex: 1, gap: theme.spacing.xs },
   fieldLabelRow: { flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center' },
   fieldLabel: { letterSpacing: 0.5 },
