@@ -29,6 +29,8 @@ interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   password?: boolean;
   /** Mensaje de error: pinta el borde de rojo y lo muestra debajo. */
   error?: string;
+  /** Solo pinta el borde de rojo, sin mensaje (para errores compartidos). */
+  invalid?: boolean;
   /** Deshabilitado: fondo más oscuro, no editable, candado a la derecha. */
   disabled?: boolean;
   /** Área de texto multilínea (bio). */
@@ -42,6 +44,7 @@ export function TextField({
   icon: Icon,
   password,
   error,
+  invalid,
   disabled,
   multiline,
   ...inputProps
@@ -68,7 +71,7 @@ export function TextField({
           styles.box,
           multiline && styles.boxMultiline,
           disabled && styles.boxDisabled,
-          error ? styles.boxError : null,
+          (error || invalid) ? styles.boxError : null,
         ]}>
         {Icon ? (
           <Icon size={20} color={theme.colors.textTertiary} strokeWidth={1.75} />

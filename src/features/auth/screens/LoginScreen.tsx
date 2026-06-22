@@ -26,6 +26,7 @@ import { IconMail, IconLock, IconBrandXbox, IconBrandDiscord } from '@/design-sy
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
+import { authenticate } from '@/shared/auth/mockUsers';
 import { validateEmail, validatePassword } from '@/shared/utils/validation';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
@@ -37,14 +38,36 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
+  const [credentialError, setCredentialError] = useState<string>();
+
+  const clearErrors = () => {
+    setEmailError(undefined);
+    setPasswordError(undefined);
+    setCredentialError(undefined);
+  };
 
   const handleSubmit = () => {
+    // 1) Validación de formato
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
     setEmailError(eErr);
     setPasswordError(pErr);
-    if (!eErr && !pErr) {
-      signIn();
+    setCredentialError(undefined);
+    if (eErr || pErr) return;
+
+    // 2) Autenticación contra usuarios demo
+    const result = authenticate(email, password);
+    if (result.ok) {
+      signIn(result.user.role);
+      return;
+    }
+    if (result.reason === 'not_registered') {
+      setEmailError('Este correo no está registrado. ¿Quieres crear una cuenta?');
+    } else {
+      // Correo existe pero contraseña incorrecta (OB-02c)
+      setCredentialError(
+        'Correo o contraseña incorrectos. Verifica tus datos e inténtalo de nuevo.',
+      );
     }
   };
 
@@ -85,9 +108,10 @@ export function LoginScreen({ navigation }: Props) {
               value={email}
               onChangeText={t => {
                 setEmail(t);
-                if (emailError) setEmailError(undefined);
+                if (emailError || credentialError) clearErrors();
               }}
               error={emailError}
+              invalid={!!credentialError}
             />
 
             <View>
@@ -99,10 +123,16 @@ export function LoginScreen({ navigation }: Props) {
                 value={password}
                 onChangeText={t => {
                   setPassword(t);
-                  if (passwordError) setPasswordError(undefined);
+                  if (passwordError || credentialError) clearErrors();
                 }}
                 error={passwordError}
+                invalid={!!credentialError}
               />
+              {credentialError ? (
+                <Txt variant="caption" color="danger" style={styles.credError}>
+                  {credentialError}
+                </Txt>
+              ) : null}
               <Pressable
                 style={styles.forgot}
                 onPress={() => navigation.navigate('CrearCuenta')}>
@@ -187,6 +217,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginTop: theme.spacing.xs,
   },
+  credError: { marginTop: theme.spacing.sm },
   forgot: { alignSelf: 'flex-end', marginTop: theme.spacing.md },
   forgotText: {
     fontFamily: fonts.meta,
