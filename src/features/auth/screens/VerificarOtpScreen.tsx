@@ -17,7 +17,6 @@ import {
 import { IconMessage } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
-import { useSession } from '@/shared/auth/SessionContext';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'VerificarOtp'>;
@@ -26,7 +25,6 @@ const CODE_LENGTH = 6;
 const RESEND_SECONDS = 42;
 
 export function VerificarOtpScreen({ navigation }: Props) {
-  const { signIn } = useSession();
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
@@ -42,7 +40,8 @@ export function VerificarOtpScreen({ navigation }: Props) {
       setError(true);
       return;
     }
-    signIn();
+    // Teléfono verificado: regresamos al perfil (este paso es parte del registro).
+    navigation.goBack();
   };
 
   const mmss = `0:${String(seconds).padStart(2, '0')}`;

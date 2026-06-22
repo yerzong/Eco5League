@@ -36,6 +36,7 @@ import {
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
+import { validateRequired } from '@/shared/utils/validation';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CompletarPerfil'>;
@@ -60,6 +61,31 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   const { signIn } = useSession();
   const [nombre, setNombre] = useState('');
   const [apellidos, setApellidos] = useState('');
+  const [fecha, setFecha] = useState('');
+  const [pais, setPais] = useState('');
+  const [errors, setErrors] = useState<{
+    nombre?: string;
+    apellidos?: string;
+    fecha?: string;
+    pais?: string;
+  }>({});
+
+  const clear = (k: keyof typeof errors) => {
+    if (errors[k]) setErrors(e => ({ ...e, [k]: undefined }));
+  };
+
+  const handleFinalizar = () => {
+    const next = {
+      nombre: validateRequired(nombre, 'Ingresa tu nombre.'),
+      apellidos: validateRequired(apellidos, 'Ingresa tus apellidos.'),
+      fecha: validateRequired(fecha, 'Selecciona tu fecha de nacimiento.'),
+      pais: validateRequired(pais, 'Selecciona tu país.'),
+    };
+    setErrors(next);
+    if (!next.nombre && !next.apellidos && !next.fecha && !next.pais) {
+      signIn();
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -108,25 +134,47 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               required
               placeholder="Ej. Gerson"
               value={nombre}
-              onChangeText={setNombre}
+              onChangeText={t => {
+                setNombre(t);
+                clear('nombre');
+              }}
+              error={errors.nombre}
             />
             <TextField
               label="Apellidos"
               required
               placeholder="Ej. García"
               value={apellidos}
-              onChangeText={setApellidos}
+              onChangeText={t => {
+                setApellidos(t);
+                clear('apellidos');
+              }}
+              error={errors.apellidos}
             />
             <SelectField
               label="Fecha de nacimiento"
               required
               icon={IconCalendar}
               placeholder="dd / mm / aaaa"
+              value={fecha}
+              error={errors.fecha}
+              onPress={() => {
+                // Maqueta: simula la selección de una fecha.
+                setFecha('15 / 03 / 2001');
+                clear('fecha');
+              }}
             />
             <SelectField
               label="Nacionalidad"
               required
               placeholder="Selecciona tu país"
+              value={pais}
+              error={errors.pais}
+              onPress={() => {
+                // Maqueta: simula la selección de país.
+                setPais('México');
+                clear('pais');
+              }}
             />
 
             {/* Identidad de juego */}
@@ -215,7 +263,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               label="FINALIZAR PERFIL"
               height={56}
               borderColor="#f04d60"
-              onPress={() => signIn()}
+              onPress={handleFinalizar}
             />
           </View>
         </KeyboardAvoidingView>

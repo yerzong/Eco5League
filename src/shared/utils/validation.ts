@@ -21,6 +21,13 @@ export function validatePassword(value: string): string | undefined {
   return undefined;
 }
 
+export function validateRequired(
+  value: string,
+  message = 'Este campo es obligatorio.',
+): string | undefined {
+  return value.trim() ? undefined : message;
+}
+
 export function validatePasswordMatch(
   password: string,
   confirm: string,
