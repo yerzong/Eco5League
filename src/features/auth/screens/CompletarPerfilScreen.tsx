@@ -4,6 +4,7 @@
  */
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -11,6 +12,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
@@ -24,6 +26,7 @@ import {
   SelectField,
   AngularButton,
   ConfirmModal,
+  ProgressBar,
 } from '@/design-system/components';
 import {
   IconCamera,
@@ -69,7 +72,30 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   const [fecha, setFecha] = useState('');
   const [pais, setPais] = useState('');
   const [gamertag, setGamertag] = useState('');
+  const [photo, setPhoto] = useState<string>();
   const [socials, setSocials] = useState<AddedSocial[]>([]);
+
+  const pickPhoto = async () => {
+    const res = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+      quality: 0.9,
+    });
+    const uri = res.assets?.[0]?.uri;
+    if (uri) setPhoto(uri);
+  };
+
+  // Progreso = campos requeridos completados / total (correo viene precargado).
+  const requiredDone = [
+    !!photo,
+    !!nombre.trim(),
+    !!apellidos.trim(),
+    !!fecha.trim(),
+    !!pais.trim(),
+    !!gamertag.trim(),
+    true, // correo (precargado)
+  ];
+  const progress = requiredDone.filter(Boolean).length / requiredDone.length;
   const [errors, setErrors] = useState<{
     nombre?: string;
     apellidos?: string;
@@ -116,14 +142,18 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             {/* Header */}
             <Eyebrow label="// Paso 2 de 2 · Tu perfil" />
             <Txt style={styles.title}>COMPLETA TU PERFIL</Txt>
-            <View style={styles.track}>
-              <View style={styles.fill} />
+            <View style={styles.progressWrap}>
+              <ProgressBar progress={progress} />
             </View>
 
             {/* Foto de perfil */}
             <View style={styles.photoRow}>
-              <Pressable style={styles.photoBox}>
-                <IconCamera size={26} color={theme.colors.textSecondary} strokeWidth={1.75} />
+              <Pressable style={styles.photoBox} onPress={pickPhoto}>
+                {photo ? (
+                  <Image source={{ uri: photo }} style={styles.photoImg} />
+                ) : (
+                  <IconCamera size={26} color={theme.colors.textSecondary} strokeWidth={1.75} />
+                )}
               </Pressable>
               <View style={styles.photoText}>
                 <View style={styles.fieldLabelRow}>
@@ -353,18 +383,7 @@ const styles = StyleSheet.create({
     lineHeight: 38,
     color: theme.colors.textPrimary,
   },
-  track: {
-    height: 5,
-    borderRadius: 99,
-    backgroundColor: theme.colors.surface2,
-    marginVertical: theme.spacing.sm,
-  },
-  fill: {
-    width: '66%',
-    height: 5,
-    borderRadius: 99,
-    backgroundColor: theme.colors.brandRedHover,
-  },
+  progressWrap: { marginVertical: theme.spacing.sm },
   // Foto
   photoRow: { flexDirection: 'row', gap: theme.spacing.lg, alignItems: 'center' },
   photoBox: {
@@ -376,7 +395,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  photoImg: { width: '100%', height: '100%' },
   photoText: { flex: 1, gap: theme.spacing.xs },
   fieldLabelRow: { flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center' },
   fieldLabel: { letterSpacing: 0.5 },

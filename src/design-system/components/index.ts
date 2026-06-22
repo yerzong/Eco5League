@@ -16,3 +16,4 @@ export { BottomSheet } from './BottomSheet';
 export { OtpInput } from './OtpInput';
 export { PasswordRules } from './PasswordRules';
 export { ConfirmModal } from './ConfirmModal';
+export { ProgressBar } from './ProgressBar';
