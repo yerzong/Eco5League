@@ -13,6 +13,7 @@ export { BackButton } from './BackButton';
 export { SectionLabel } from './SectionLabel';
 export { SelectField } from './SelectField';
 export { BottomSheet } from './BottomSheet';
+export type { BottomSheetHandle } from './BottomSheet';
 export { OtpInput } from './OtpInput';
 export { PasswordRules } from './PasswordRules';
 export { ConfirmModal } from './ConfirmModal';

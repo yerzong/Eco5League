@@ -2,10 +2,15 @@
  * OB-07 · Modal Agregar red social — bottom sheet.
  * Grilla de redes seleccionables + usuario + botón AGREGAR.
  */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Txt, BottomSheet, AngularButton } from '@/design-system/components';
+import {
+  Txt,
+  BottomSheet,
+  AngularButton,
+  type BottomSheetHandle,
+} from '@/design-system/components';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { NETWORKS } from '@/features/auth/socialNetworks';
@@ -14,9 +19,9 @@ import type { OnboardingStackParamList } from '@/app/navigation/types';
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'RedesSocialesModal'>;
 
 export function RedesSocialesScreen({ navigation, route }: Props) {
+  const sheetRef = useRef<BottomSheetHandle>(null);
   const [selected, setSelected] = useState('tiktok');
   const [usuario, setUsuario] = useState('');
-  const close = () => navigation.goBack();
   const net = NETWORKS.find(n => n.key === selected)!;
   const isWeb = selected === 'web';
 
@@ -24,14 +29,15 @@ export function RedesSocialesScreen({ navigation, route }: Props) {
     if (usuario.trim()) {
       route.params?.onAdd?.({ networkKey: selected, handle: usuario.trim() });
     }
-    close();
+    sheetRef.current?.close(); // cierra con animación
   };
 
   return (
     <BottomSheet
+      ref={sheetRef}
       title="Agregar red social"
       subtitle="Conecta tus redes para tu perfil público."
-      onClose={close}>
+      onClose={() => navigation.goBack()}>
       {/* Grilla de redes */}
       <View style={styles.grid}>
         {NETWORKS.map(n => {

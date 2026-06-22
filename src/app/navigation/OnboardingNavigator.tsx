@@ -27,7 +27,7 @@ export function OnboardingNavigator() {
       <Stack.Screen
         name="RedesSocialesModal"
         component={RedesSocialesScreen}
-        options={{ presentation: 'transparentModal', animation: 'fade' }}
+        options={{ presentation: 'transparentModal', animation: 'none' }}
       />
     </Stack.Navigator>
   );

@@ -2,7 +2,7 @@
  * OB-04 · Completar perfil — fiel al diseño de Figma.
  * Paso 2 de 2 del onboarding. Footer fijo con "FINALIZAR PERFIL".
  */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -32,7 +32,10 @@ import {
   AngularButton,
   ConfirmModal,
   ProgressBar,
+  BottomSheet,
+  type BottomSheetHandle,
 } from '@/design-system/components';
+import { NATIONALITIES } from '@/shared/data/nationalities';
 import {
   IconCamera,
   IconCalendar,
@@ -42,6 +45,7 @@ import {
   IconPlus,
   IconMail,
   IconX,
+  IconCircleCheck,
 } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
@@ -80,6 +84,24 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   const [photo, setPhoto] = useState<string>();
   const [processingPhoto, setProcessingPhoto] = useState(false);
   const [socials, setSocials] = useState<AddedSocial[]>([]);
+  const [paisSheet, setPaisSheet] = useState(false);
+  const paisSheetRef = useRef<BottomSheetHandle>(null);
+
+  /** Formatea lo escrito como "dd / mm / aaaa" mientras se teclea. */
+  const onFechaChange = (t: string) => {
+    const d = t.replace(/\D/g, '').slice(0, 8);
+    let f = d;
+    if (d.length > 4) f = `${d.slice(0, 2)} / ${d.slice(2, 4)} / ${d.slice(4)}`;
+    else if (d.length > 2) f = `${d.slice(0, 2)} / ${d.slice(2)}`;
+    setFecha(f);
+    clear('fecha');
+  };
+
+  const selectPais = (label: string) => {
+    setPais(label);
+    clear('pais');
+    paisSheetRef.current?.close();
+  };
 
   const pickPhoto = async () => {
     const res = await launchImageLibrary({
@@ -216,18 +238,16 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               }}
               error={errors.apellidos}
             />
-            <SelectField
+            <TextField
               label="Fecha de nacimiento"
               required
               icon={IconCalendar}
               placeholder="dd / mm / aaaa"
+              keyboardType="number-pad"
+              maxLength={14}
               value={fecha}
+              onChangeText={onFechaChange}
               error={errors.fecha}
-              onPress={() => {
-                // Maqueta: simula la selección de una fecha.
-                setFecha('15 / 03 / 2001');
-                clear('fecha');
-              }}
             />
             <SelectField
               label="Nacionalidad"
@@ -235,11 +255,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               placeholder="Selecciona tu país"
               value={pais}
               error={errors.pais}
-              onPress={() => {
-                // Maqueta: simula la selección de país.
-                setPais('México');
-                clear('pais');
-              }}
+              onPress={() => setPaisSheet(true)}
             />
 
             {/* Identidad de juego */}
@@ -386,6 +402,31 @@ export function CompletarPerfilScreen({ navigation }: Props) {
         onCancel={exit.onCancel}
         onConfirm={exit.onConfirm}
       />
+
+      {paisSheet ? (
+        <BottomSheet
+          ref={paisSheetRef}
+          title="Selecciona tu país"
+          onClose={() => setPaisSheet(false)}>
+          {NATIONALITIES.map(n => {
+            const active = pais === n.label;
+            return (
+              <Pressable
+                key={n.code}
+                style={styles.countryRow}
+                onPress={() => selectPais(n.label)}>
+                <Txt style={styles.flag}>{n.flag}</Txt>
+                <Txt variant="body" color="textPrimary" style={styles.flex}>
+                  {n.label}
+                </Txt>
+                {active ? (
+                  <IconCircleCheck size={20} color={theme.colors.brandRed} strokeWidth={2} />
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </BottomSheet>
+      ) : null}
     </View>
   );
 }
@@ -518,6 +559,16 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.borderStrong,
     borderStyle: 'dashed',
   },
+  // Selector de país
+  countryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderDefault,
+  },
+  flag: { fontSize: 22 },
   // Footer
   footer: {
     paddingHorizontal: theme.spacing['3xl'],
