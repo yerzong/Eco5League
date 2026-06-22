@@ -22,12 +22,15 @@ interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   icon?: IconCmp;
   /** Si es contraseña: muestra ojo para alternar visibilidad. */
   password?: boolean;
+  /** Mensaje de error: pinta el borde de rojo y lo muestra debajo. */
+  error?: string;
 }
 
 export function TextField({
   label,
   icon: Icon,
   password,
+  error,
   ...inputProps
 }: TextFieldProps) {
   const [hidden, setHidden] = useState(!!password);
@@ -39,7 +42,7 @@ export function TextField({
           {label.toUpperCase()}
         </Txt>
       ) : null}
-      <View style={styles.box}>
+      <View style={[styles.box, error ? styles.boxError : null]}>
         {Icon ? (
           <Icon size={20} color={theme.colors.textTertiary} strokeWidth={1.75} />
         ) : null}
@@ -60,6 +63,11 @@ export function TextField({
           </TouchableOpacity>
         ) : null}
       </View>
+      {error ? (
+        <Txt variant="caption" color="danger">
+          {error}
+        </Txt>
+      ) : null}
     </View>
   );
 }
@@ -77,6 +85,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.borderDefault,
     borderRadius: theme.radius.sm,
+  },
+  boxError: {
+    borderColor: theme.colors.danger,
   },
   input: {
     flex: 1,

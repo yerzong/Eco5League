@@ -26,6 +26,7 @@ import { IconMail, IconLock, IconBrandXbox, IconBrandDiscord } from '@/design-sy
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
+import { validateEmail, validatePassword } from '@/shared/utils/validation';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Login'>;
@@ -34,6 +35,18 @@ export function LoginScreen({ navigation }: Props) {
   const { signIn } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string>();
+  const [passwordError, setPasswordError] = useState<string>();
+
+  const handleSubmit = () => {
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+    setEmailError(eErr);
+    setPasswordError(pErr);
+    if (!eErr && !pErr) {
+      signIn();
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -70,7 +83,11 @@ export function LoginScreen({ navigation }: Props) {
               keyboardType="email-address"
               autoComplete="email"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={t => {
+                setEmail(t);
+                if (emailError) setEmailError(undefined);
+              }}
+              error={emailError}
             />
 
             <View>
@@ -80,7 +97,11 @@ export function LoginScreen({ navigation }: Props) {
                 placeholder="Tu contraseña"
                 password
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={t => {
+                  setPassword(t);
+                  if (passwordError) setPasswordError(undefined);
+                }}
+                error={passwordError}
               />
               <Pressable
                 style={styles.forgot}
@@ -94,7 +115,7 @@ export function LoginScreen({ navigation }: Props) {
               label="INICIAR SESIÓN"
               height={54}
               borderColor="#f04d60"
-              onPress={() => signIn()}
+              onPress={handleSubmit}
             />
 
             {/* Divisor */}
