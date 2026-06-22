@@ -33,12 +33,14 @@ import {
   IconPhone,
   IconPlus,
   IconMail,
+  IconX,
 } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
 import { validateRequired, validateBirthDate } from '@/shared/utils/validation';
 import { useExitConfirm } from '@/shared/hooks/useExitConfirm';
+import { getNetwork, type AddedSocial } from '@/features/auth/socialNetworks';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CompletarPerfil'>;
@@ -67,6 +69,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   const [fecha, setFecha] = useState('');
   const [pais, setPais] = useState('');
   const [gamertag, setGamertag] = useState('');
+  const [socials, setSocials] = useState<AddedSocial[]>([]);
   const [errors, setErrors] = useState<{
     nombre?: string;
     apellidos?: string;
@@ -252,12 +255,47 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             {/* Redes sociales */}
             <View style={styles.field}>
               <FieldLabel label="Redes sociales" optional />
+              {socials.map((s, i) => {
+                const net = getNetwork(s.networkKey);
+                if (!net) return null;
+                const Icon = net.icon;
+                const display =
+                  net.key === 'web' || s.handle.startsWith('@')
+                    ? s.handle
+                    : `@${s.handle}`;
+                return (
+                  <View key={`${s.networkKey}-${i}`} style={styles.socialRow}>
+                    <View style={styles.socialIcon}>
+                      <Icon size={20} color={net.color} strokeWidth={1.9} />
+                    </View>
+                    <View style={styles.socialInfo}>
+                      <Txt variant="caption" color="textSecondary">
+                        {net.label}
+                      </Txt>
+                      <Txt variant="bodyMedium" color="textPrimary">
+                        {display}
+                      </Txt>
+                    </View>
+                    <Pressable
+                      style={styles.socialRemove}
+                      onPress={() =>
+                        setSocials(prev => prev.filter((_, j) => j !== i))
+                      }>
+                      <IconX size={14} color={theme.colors.textSecondary} strokeWidth={2} />
+                    </Pressable>
+                  </View>
+                );
+              })}
               <Pressable
                 style={styles.addSocial}
-                onPress={() => navigation.navigate('RedesSocialesModal')}>
+                onPress={() =>
+                  navigation.navigate('RedesSocialesModal', {
+                    onAdd: s => setSocials(prev => [...prev, s]),
+                  })
+                }>
                 <IconPlus size={18} color={theme.colors.textSecondary} strokeWidth={2} />
                 <Txt variant="button" color="textSecondary">
-                  Agregar red social
+                  {socials.length ? 'Agregar otra red' : 'Agregar red social'}
                 </Txt>
               </Pressable>
             </View>
@@ -386,6 +424,34 @@ const styles = StyleSheet.create({
   },
   otpBtnText: { fontFamily: fonts.button, fontSize: 12, color: theme.colors.textPrimary },
   // Redes
+  socialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    height: 54,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.surface1,
+    borderWidth: 1,
+    borderColor: theme.colors.borderDefault,
+    borderRadius: theme.radius.md,
+  },
+  socialIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialInfo: { flex: 1, gap: 1 },
+  socialRemove: {
+    width: 28,
+    height: 28,
+    borderRadius: 99,
+    backgroundColor: theme.colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   addSocial: {
     flexDirection: 'row',
     alignItems: 'center',

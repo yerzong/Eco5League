@@ -10,7 +10,7 @@ export type OnboardingStackParamList = {
   CrearCuenta: undefined;
   CompletarPerfil: undefined;
   VerificarOtp: { phone?: string } | undefined;
-  RedesSocialesModal: undefined;
+  RedesSocialesModal: { onAdd?: (s: import('@/features/auth/socialNetworks').AddedSocial) => void } | undefined;
 };
 
 export type AppTabParamList = Record<TabKey, undefined>;

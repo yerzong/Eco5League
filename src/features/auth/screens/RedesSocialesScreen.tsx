@@ -6,43 +6,26 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Txt, BottomSheet, AngularButton } from '@/design-system/components';
-import {
-  IconBrandTiktok,
-  IconBrandFacebook,
-  IconBrandYoutube,
-  IconBrandX,
-  IconBrandTwitch,
-  IconWorld,
-  type IconProps,
-} from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
+import { NETWORKS } from '@/features/auth/socialNetworks';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'RedesSocialesModal'>;
 
-interface Network {
-  key: string;
-  label: string;
-  icon: React.ComponentType<IconProps>;
-  color: string;
-}
-
-const NETWORKS: Network[] = [
-  { key: 'tiktok', label: 'TikTok', icon: IconBrandTiktok, color: theme.colors.textPrimary },
-  { key: 'facebook', label: 'Facebook', icon: IconBrandFacebook, color: '#1877f2' },
-  { key: 'youtube', label: 'YouTube', icon: IconBrandYoutube, color: '#ff0000' },
-  { key: 'x', label: 'X', icon: IconBrandX, color: theme.colors.textPrimary },
-  { key: 'twitch', label: 'Twitch', icon: IconBrandTwitch, color: '#9146ff' },
-  { key: 'web', label: 'Sitio web', icon: IconWorld, color: theme.colors.textSecondary },
-];
-
-export function RedesSocialesScreen({ navigation }: Props) {
+export function RedesSocialesScreen({ navigation, route }: Props) {
   const [selected, setSelected] = useState('tiktok');
   const [usuario, setUsuario] = useState('');
   const close = () => navigation.goBack();
   const net = NETWORKS.find(n => n.key === selected)!;
   const isWeb = selected === 'web';
+
+  const handleAdd = () => {
+    if (usuario.trim()) {
+      route.params?.onAdd?.({ networkKey: selected, handle: usuario.trim() });
+    }
+    close();
+  };
 
   return (
     <BottomSheet
@@ -92,7 +75,7 @@ export function RedesSocialesScreen({ navigation }: Props) {
         height={56}
         borderColor="#f04d60"
         style={styles.cta}
-        onPress={close}
+        onPress={handleAdd}
       />
     </BottomSheet>
   );
