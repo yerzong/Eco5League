@@ -20,6 +20,7 @@ import {
   TextField,
   SocialButton,
   Eyebrow,
+  BackButton,
 } from '@/design-system/components';
 import { IconMail, IconLock, IconBrandXbox, IconBrandDiscord } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
@@ -72,6 +73,8 @@ export function CrearCuentaScreen({ navigation }: Props) {
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
+            <BackButton style={styles.back} />
+
             {/* Header */}
             <View style={styles.headerText}>
               <Eyebrow label="// Crear cuenta" />
@@ -184,6 +187,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing['2xl'],
     gap: theme.spacing.xl,
   },
+  back: { marginBottom: -theme.spacing.sm },
   headerText: { gap: theme.spacing.xs },
   title: {
     fontFamily: fonts.headingBold,

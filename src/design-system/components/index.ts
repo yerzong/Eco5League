@@ -9,3 +9,4 @@ export { CornerBrackets } from './CornerBrackets';
 export { TextField } from './TextField';
 export { SocialButton } from './SocialButton';
 export { Eyebrow } from './Eyebrow';
+export { BackButton } from './BackButton';

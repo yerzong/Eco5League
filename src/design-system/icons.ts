@@ -23,6 +23,7 @@ export {
   IconUser,
   IconBell,
   IconChevronRight,
+  IconChevronLeft,
 } from '@tabler/icons-react-native';
 
 export type { IconProps } from '@tabler/icons-react-native';
