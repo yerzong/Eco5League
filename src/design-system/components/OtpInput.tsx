@@ -16,6 +16,8 @@ interface OtpInputProps {
   autoFocus?: boolean;
   /** Marca todas las casillas en estado de error (borde rojo). */
   error?: boolean;
+  /** Si es false, no se puede editar (ej. ya verificado). */
+  editable?: boolean;
 }
 
 export function OtpInput({
@@ -24,12 +26,13 @@ export function OtpInput({
   onChangeText,
   autoFocus,
   error,
+  editable = true,
 }: OtpInputProps) {
   const ref = useRef<TextInput>(null);
   const focus = () => ref.current?.focus();
 
   return (
-    <Pressable style={styles.row} onPress={focus}>
+    <Pressable style={styles.row} onPress={editable ? focus : undefined}>
       {Array.from({ length }).map((_, i) => {
         const char = value[i] ?? '';
         const active = i === value.length;
@@ -52,6 +55,7 @@ export function OtpInput({
         keyboardType="number-pad"
         maxLength={length}
         caretHidden
+        editable={editable}
         autoFocus={autoFocus}
         style={styles.hidden}
       />

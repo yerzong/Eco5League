@@ -23,6 +23,7 @@ import {
   TextField,
   SelectField,
   AngularButton,
+  ConfirmModal,
 } from '@/design-system/components';
 import {
   IconCamera,
@@ -36,7 +37,8 @@ import {
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
-import { validateRequired } from '@/shared/utils/validation';
+import { validateRequired, validateBirthDate } from '@/shared/utils/validation';
+import { useExitConfirm } from '@/shared/hooks/useExitConfirm';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CompletarPerfil'>;
@@ -59,30 +61,36 @@ function FieldLabel({ label, optional }: { label: string; optional?: boolean }) 
 
 export function CompletarPerfilScreen({ navigation }: Props) {
   const { signIn } = useSession();
+  const exit = useExitConfirm();
   const [nombre, setNombre] = useState('');
   const [apellidos, setApellidos] = useState('');
   const [fecha, setFecha] = useState('');
   const [pais, setPais] = useState('');
+  const [gamertag, setGamertag] = useState('');
   const [errors, setErrors] = useState<{
     nombre?: string;
     apellidos?: string;
     fecha?: string;
     pais?: string;
+    gamertag?: string;
   }>({});
 
+  const REQUIRED = 'Este campo es requerido.';
   const clear = (k: keyof typeof errors) => {
     if (errors[k]) setErrors(e => ({ ...e, [k]: undefined }));
   };
 
   const handleFinalizar = () => {
     const next = {
-      nombre: validateRequired(nombre, 'Ingresa tu nombre.'),
-      apellidos: validateRequired(apellidos, 'Ingresa tus apellidos.'),
-      fecha: validateRequired(fecha, 'Selecciona tu fecha de nacimiento.'),
-      pais: validateRequired(pais, 'Selecciona tu país.'),
+      nombre: validateRequired(nombre, REQUIRED),
+      apellidos: validateRequired(apellidos, REQUIRED),
+      fecha: validateBirthDate(fecha),
+      pais: validateRequired(pais, REQUIRED),
+      gamertag: validateRequired(gamertag, REQUIRED),
     };
     setErrors(next);
-    if (!next.nombre && !next.apellidos && !next.fecha && !next.pais) {
+    if (!Object.values(next).some(Boolean)) {
+      exit.bypass();
       signIn();
     }
   };
@@ -185,6 +193,8 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               disabled
               icon={IconDeviceGamepad2}
               placeholder="Verifica tu Xbox para precargarlo"
+              value={gamertag}
+              error={errors.gamertag}
             />
 
             {/* Tarjeta verificación Xbox */}
@@ -200,7 +210,13 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                   Obligatorio solo si vas a competir en un roster.
                 </Txt>
               </View>
-              <Pressable style={styles.xboxBtn}>
+              <Pressable
+                style={styles.xboxBtn}
+                onPress={() => {
+                  // Maqueta: verificar Xbox precarga el gamertag.
+                  setGamertag('Gerson_E5');
+                  clear('gamertag');
+                }}>
                 <Txt style={styles.xboxBtnText}>Verificar</Txt>
               </Pressable>
             </View>
@@ -268,6 +284,16 @@ export function CompletarPerfilScreen({ navigation }: Props) {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <ConfirmModal
+        visible={exit.visible}
+        title="¿SALIR SIN GUARDAR?"
+        body="Perderás la información ingresada. Tu perfil quedará incompleto hasta que completes este paso."
+        cancelLabel="Cancelar"
+        confirmLabel="Sí, regresar"
+        onCancel={exit.onCancel}
+        onConfirm={exit.onConfirm}
+      />
     </View>
   );
 }

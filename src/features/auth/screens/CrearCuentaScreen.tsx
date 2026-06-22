@@ -21,16 +21,24 @@ import {
   SocialButton,
   Eyebrow,
   BackButton,
+  PasswordRules,
 } from '@/design-system/components';
 import { IconMail, IconLock, IconBrandXbox, IconBrandDiscord } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import {
   validateEmail,
-  validatePassword,
+  validateStrongPassword,
   validatePasswordMatch,
 } from '@/shared/utils/validation';
+import { MOCK_USERS } from '@/shared/auth/mockUsers';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
+
+/** Demo: ¿el correo ya existe en el sistema? */
+function emailAlreadyRegistered(email: string): boolean {
+  const n = email.trim().toLowerCase();
+  return MOCK_USERS.some(u => u.email.toLowerCase() === n);
+}
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CrearCuenta'>;
 
@@ -45,9 +53,13 @@ export function CrearCuentaScreen({ navigation }: Props) {
   }>({});
 
   const handleSubmit = () => {
+    let emailErr = validateEmail(email);
+    if (!emailErr && emailAlreadyRegistered(email)) {
+      emailErr = 'Este correo ya está registrado. Intenta iniciar sesión.';
+    }
     const next = {
-      email: validateEmail(email),
-      password: validatePassword(password),
+      email: emailErr,
+      password: validateStrongPassword(password),
       confirm: validatePasswordMatch(password, confirm),
     };
     setErrors(next);
@@ -98,18 +110,21 @@ export function CrearCuentaScreen({ navigation }: Props) {
               }}
               error={errors.email}
             />
-            <TextField
-              label="Contraseña"
-              icon={IconLock}
-              placeholder="Mínimo 8 caracteres"
-              password
-              value={password}
-              onChangeText={t => {
-                setPassword(t);
-                clear('password');
-              }}
-              error={errors.password}
-            />
+            <View>
+              <TextField
+                label="Contraseña"
+                icon={IconLock}
+                placeholder="Mínimo 8 caracteres"
+                password
+                value={password}
+                onChangeText={t => {
+                  setPassword(t);
+                  clear('password');
+                }}
+                error={errors.password}
+              />
+              {password.length > 0 ? <PasswordRules value={password} /> : null}
+            </View>
             <TextField
               label="Confirmar contraseña"
               icon={IconLock}

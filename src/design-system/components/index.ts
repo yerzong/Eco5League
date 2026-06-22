@@ -14,3 +14,5 @@ export { SectionLabel } from './SectionLabel';
 export { SelectField } from './SelectField';
 export { BottomSheet } from './BottomSheet';
 export { OtpInput } from './OtpInput';
+export { PasswordRules } from './PasswordRules';
+export { ConfirmModal } from './ConfirmModal';
