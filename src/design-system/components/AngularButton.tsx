@@ -21,6 +21,8 @@ interface AngularButtonProps {
   height?: number;
   from?: string;
   to?: string;
+  /** Color del borde del polígono (opcional). */
+  borderColor?: string;
   style?: ViewStyle;
 }
 
@@ -31,6 +33,7 @@ export function AngularButton({
   height = 60,
   from = '#ec2740',
   to = '#9e0c21',
+  borderColor,
   style,
 }: AngularButtonProps) {
   const [w, setW] = useState(0);
@@ -59,7 +62,12 @@ export function AngularButton({
               <Stop offset="1" stopColor={to} />
             </LinearGradient>
           </Defs>
-          <Polygon points={points} fill="url(#angBtn)" />
+          <Polygon
+            points={points}
+            fill="url(#angBtn)"
+            stroke={borderColor}
+            strokeWidth={borderColor ? 1.5 : 0}
+          />
         </Svg>
       )}
       <View style={styles.labelWrap}>

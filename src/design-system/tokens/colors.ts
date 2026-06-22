@@ -49,4 +49,12 @@ export const roleColors = {
   superadmin: '#c8102e',
 } as const;
 
+/** Colores oficiales de proveedores de login (para botones sociales). */
+export const providerColors = {
+  xbox: '#107c10',
+  discord: '#5865f2',
+  google: '#ffffff',
+  apple: '#000000',
+} as const;
+
 export type PaletteToken = keyof typeof palette;

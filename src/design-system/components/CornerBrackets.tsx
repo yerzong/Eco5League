@@ -14,6 +14,10 @@ interface CornerBracketsProps {
   thickness?: number;
   topColor?: string;
   bottomColor?: string;
+  /** Mostrar esquinas superiores. Default true. */
+  top?: boolean;
+  /** Mostrar esquinas inferiores. Default true. */
+  bottom?: boolean;
 }
 
 export function CornerBrackets({
@@ -22,37 +26,47 @@ export function CornerBrackets({
   thickness = 3,
   topColor = theme.colors.brandRed,
   bottomColor = theme.colors.borderStrong,
+  top = true,
+  bottom = true,
 }: CornerBracketsProps) {
   const h = { width: length, height: thickness };
   const v = { width: thickness, height: length };
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      {/* Superior izquierda */}
-      <View style={[styles.abs, { top: inset, left: inset }]}>
-        <View style={[h, { backgroundColor: topColor }]} />
-        <View style={[v, { backgroundColor: topColor }]} />
-      </View>
-      {/* Superior derecha */}
-      <View style={[styles.abs, styles.right, { top: inset, right: inset }]}>
-        <View style={[h, { backgroundColor: topColor }]} />
-        <View style={[v, styles.selfEnd, { backgroundColor: topColor }]} />
-      </View>
-      {/* Inferior izquierda */}
-      <View style={[styles.abs, styles.bottom, { bottom: inset, left: inset }]}>
-        <View style={[v, { backgroundColor: bottomColor }]} />
-        <View style={[h, { backgroundColor: bottomColor }]} />
-      </View>
-      {/* Inferior derecha */}
-      <View
-        style={[
-          styles.abs,
-          styles.bottom,
-          styles.right,
-          { bottom: inset, right: inset },
-        ]}>
-        <View style={[v, styles.selfEnd, { backgroundColor: bottomColor }]} />
-        <View style={[h, { backgroundColor: bottomColor }]} />
-      </View>
+      {top && (
+        <>
+          {/* Superior izquierda */}
+          <View style={[styles.abs, { top: inset, left: inset }]}>
+            <View style={[h, { backgroundColor: topColor }]} />
+            <View style={[v, { backgroundColor: topColor }]} />
+          </View>
+          {/* Superior derecha */}
+          <View style={[styles.abs, styles.right, { top: inset, right: inset }]}>
+            <View style={[h, { backgroundColor: topColor }]} />
+            <View style={[v, styles.selfEnd, { backgroundColor: topColor }]} />
+          </View>
+        </>
+      )}
+      {bottom && (
+        <>
+          {/* Inferior izquierda */}
+          <View style={[styles.abs, styles.bottom, { bottom: inset, left: inset }]}>
+            <View style={[v, { backgroundColor: bottomColor }]} />
+            <View style={[h, { backgroundColor: bottomColor }]} />
+          </View>
+          {/* Inferior derecha */}
+          <View
+            style={[
+              styles.abs,
+              styles.bottom,
+              styles.right,
+              { bottom: inset, right: inset },
+            ]}>
+            <View style={[v, styles.selfEnd, { backgroundColor: bottomColor }]} />
+            <View style={[h, { backgroundColor: bottomColor }]} />
+          </View>
+        </>
+      )}
     </View>
   );
 }

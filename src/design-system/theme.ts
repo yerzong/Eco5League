@@ -2,13 +2,14 @@
  * Theme central. Punto único de consumo de tokens en toda la app.
  * import { theme } from '@/design-system/theme';
  */
-import { palette, roleColors } from './tokens/colors';
+import { palette, roleColors, providerColors } from './tokens/colors';
 import { typography, fonts } from './tokens/typography';
 import { spacing, radius } from './tokens/spacing';
 
 export const theme = {
   colors: palette,
   roleColors,
+  providerColors,
   typography,
   fonts,
   spacing,
@@ -16,4 +17,4 @@ export const theme = {
 } as const;
 
 export type Theme = typeof theme;
-export { palette, roleColors, typography, fonts, spacing, radius };
+export { palette, roleColors, providerColors, typography, fonts, spacing, radius };
