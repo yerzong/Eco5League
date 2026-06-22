@@ -24,6 +24,12 @@ export {
   IconBell,
   IconChevronRight,
   IconChevronLeft,
+  IconChevronDown,
+  IconCamera,
+  IconCalendar,
+  IconPhone,
+  IconPlus,
+  IconCircleCheck,
 } from '@tabler/icons-react-native';
 
 export type { IconProps } from '@tabler/icons-react-native';
