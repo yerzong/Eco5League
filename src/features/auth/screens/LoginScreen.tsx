@@ -16,7 +16,6 @@ import {
   Txt,
   HexBadge,
   GlowBackground,
-  CornerBrackets,
   AngularButton,
   TextField,
   SocialButton,
@@ -74,7 +73,6 @@ export function LoginScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <GlowBackground size={440} centerY={0.04} />
-      <CornerBrackets bottom={false} />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView

@@ -10,7 +10,6 @@ import {
   Txt,
   HexBadge,
   GlowBackground,
-  CornerBrackets,
   AngularButton,
 } from '@/design-system/components';
 import { theme } from '@/design-system/theme';
@@ -25,7 +24,6 @@ export function SplashScreen({ navigation }: Props) {
       <GlowBackground centerY={0.4} />
       {/* Línea diagonal de marca (rotada -18°), detrás del contenido */}
       <View style={styles.diagonal} pointerEvents="none" />
-      <CornerBrackets />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         {/* Bloque de marca */}

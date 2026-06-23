@@ -15,7 +15,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Txt,
   GlowBackground,
-  CornerBrackets,
   AngularButton,
   TextField,
   SocialButton,
@@ -75,7 +74,6 @@ export function CrearCuentaScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <GlowBackground size={440} centerY={0.04} />
-      <CornerBrackets bottom={false} />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView

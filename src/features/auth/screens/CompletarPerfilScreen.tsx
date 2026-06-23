@@ -25,7 +25,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Txt,
   GlowBackground,
-  CornerBrackets,
   BackButton,
   Eyebrow,
   SectionLabel,
@@ -170,7 +169,6 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <GlowBackground size={420} centerY={0.03} />
-      <CornerBrackets bottom={false} />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
