@@ -11,6 +11,11 @@ export type OnboardingStackParamList = {
   CompletarPerfil: undefined;
   VerificarOtp: { phone?: string } | undefined;
   RedesSocialesModal: { onAdd?: (s: import('@/features/auth/socialNetworks').AddedSocial) => void } | undefined;
+  // Recuperar contraseña (00b · Recuperar acceso)
+  RecuperarAcceso: undefined;
+  RecuperarCodigo: { email: string };
+  NuevaContrasena: { email: string };
+  ContrasenaRestablecida: { email: string };
 };
 
 export type AppTabParamList = Record<TabKey, undefined>;

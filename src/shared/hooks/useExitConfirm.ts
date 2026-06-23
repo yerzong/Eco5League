@@ -18,6 +18,10 @@ export function useExitConfirm() {
   useEffect(() => {
     const unsub = navigation.addListener('beforeRemove', (e: any) => {
       if (confirmed.current) return; // ya confirmó: dejar salir
+      // Solo confirmamos cuando el usuario intenta retroceder (atrás/gesto).
+      // La navegación programática (reset/navigate al completar el flujo) pasa libre.
+      const type = e.data?.action?.type;
+      if (type !== 'GO_BACK' && type !== 'POP' && type !== 'POP_TO_TOP') return;
       e.preventDefault();
       pendingAction.current = e.data.action;
       setVisible(true);

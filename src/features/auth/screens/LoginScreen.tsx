@@ -133,7 +133,7 @@ export function LoginScreen({ navigation }: Props) {
               ) : null}
               <Pressable
                 style={styles.forgot}
-                onPress={() => navigation.navigate('CrearCuenta')}>
+                onPress={() => navigation.navigate('RecuperarAcceso')}>
                 <Txt style={styles.forgotText}>Recuperar acceso</Txt>
               </Pressable>
             </View>

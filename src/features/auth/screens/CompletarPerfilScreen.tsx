@@ -295,7 +295,6 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                 onPress={() => {
                   // Maqueta: verificar Xbox precarga el gamertag.
                   setGamertag('Gerson_E5');
-                  clear('gamertag');
                 }}>
                 <Txt style={styles.xboxBtnText}>Verificar</Txt>
               </Pressable>

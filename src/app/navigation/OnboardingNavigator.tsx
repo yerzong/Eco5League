@@ -11,6 +11,10 @@ import { CrearCuentaScreen } from '@/features/auth/screens/CrearCuentaScreen';
 import { CompletarPerfilScreen } from '@/features/auth/screens/CompletarPerfilScreen';
 import { VerificarOtpScreen } from '@/features/auth/screens/VerificarOtpScreen';
 import { RedesSocialesScreen } from '@/features/auth/screens/RedesSocialesScreen';
+import { RecuperarAccesoScreen } from '@/features/auth/screens/RecuperarAccesoScreen';
+import { RecuperarCodigoScreen } from '@/features/auth/screens/RecuperarCodigoScreen';
+import { NuevaContrasenaScreen } from '@/features/auth/screens/NuevaContrasenaScreen';
+import { ContrasenaRestablecidaScreen } from '@/features/auth/screens/ContrasenaRestablecidaScreen';
 import type { OnboardingStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<OnboardingStackParamList>();
@@ -24,6 +28,14 @@ export function OnboardingNavigator() {
       <Stack.Screen name="CrearCuenta" component={CrearCuentaScreen} />
       <Stack.Screen name="CompletarPerfil" component={CompletarPerfilScreen} />
       <Stack.Screen name="VerificarOtp" component={VerificarOtpScreen} />
+      <Stack.Screen name="RecuperarAcceso" component={RecuperarAccesoScreen} />
+      <Stack.Screen name="RecuperarCodigo" component={RecuperarCodigoScreen} />
+      <Stack.Screen name="NuevaContrasena" component={NuevaContrasenaScreen} />
+      <Stack.Screen
+        name="ContrasenaRestablecida"
+        component={ContrasenaRestablecidaScreen}
+        options={{ gestureEnabled: false }}
+      />
       <Stack.Screen
         name="RedesSocialesModal"
         component={RedesSocialesScreen}
