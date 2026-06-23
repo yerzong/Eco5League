@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.brandRed,
     borderColor: theme.colors.brandRed,
   },
-  text: { fontFamily: fonts.button, fontSize: 12, color: theme.colors.textSecondary },
-  textActive: { color: theme.colors.white },
+  // No seleccionado: Inter Regular gris. Seleccionado: Inter SemiBold blanco.
+  text: { fontFamily: fonts.body, fontSize: 13, color: theme.colors.textSecondary },
+  textActive: { fontFamily: fonts.label, color: theme.colors.white },
 });
