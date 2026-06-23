@@ -11,13 +11,22 @@ interface TagProps {
   label: string;
   /** Color base de la etiqueta. Default rojo de marca. */
   color?: string;
+  /** Convierte el texto a MAYÚSCULAS. Default true. */
+  uppercase?: boolean;
   style?: ViewStyle;
 }
 
-export function Tag({ label, color = theme.colors.brandRed, style }: TagProps) {
+export function Tag({
+  label,
+  color = theme.colors.brandRed,
+  uppercase = true,
+  style,
+}: TagProps) {
   return (
-    <View style={[styles.tag, { backgroundColor: color + '26' }, style]}>
-      <Txt style={[styles.label, { color }]}>{label.toUpperCase()}</Txt>
+    <View style={[styles.tag, { backgroundColor: color + '2e' }, style]}>
+      <Txt style={[styles.label, { color }]}>
+        {uppercase ? label.toUpperCase() : label}
+      </Txt>
     </View>
   );
 }

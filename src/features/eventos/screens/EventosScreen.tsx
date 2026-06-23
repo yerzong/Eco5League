@@ -152,43 +152,59 @@ export function EventosScreen() {
   );
 }
 
-/** Tarjeta del evento destacado (banner + datos + CTA). */
+/** Tarjeta del evento destacado: banner con título overlay + franja inferior. */
 function FeaturedCard({ event, style }: { event: LeagueEvent; style?: any }) {
   const color = statusColor(event.status);
   return (
     <View style={[styles.featured, style]}>
-      <View>
-        <GameArt label={event.game} accent={theme.colors.brandRed} height={132} radius={0} />
+      {/* Banner con overlays */}
+      <View style={styles.banner}>
+        <GameArt
+          label={event.game}
+          accent={theme.colors.brandRed}
+          height={132}
+          radius={0}
+          style={styles.bannerArt}
+        />
+        {/* Degradado inferior para legibilidad del título */}
+        <View style={styles.bannerScrim} pointerEvents="none" />
+        {/* Código (arriba-izq) */}
         <View style={styles.codeBadge}>
           <Txt style={styles.codeText}>{event.code}</Txt>
         </View>
+        {/* Estado (arriba-der) */}
         <View style={[styles.statusPill, { backgroundColor: color }]}>
-          <Txt style={styles.statusText}>{EVENT_STATUS_LABELS[event.status].toUpperCase()}</Txt>
+          <Txt style={styles.statusText}>
+            {EVENT_STATUS_LABELS[event.status].toUpperCase()}
+          </Txt>
+        </View>
+        {/* Título + subtítulo (abajo, sobre el banner) */}
+        <View style={styles.bannerText}>
+          <Txt style={styles.featuredTitle}>{event.title}</Txt>
+          <Txt variant="caption" color="textSecondary">
+            {event.subtitle}
+          </Txt>
         </View>
       </View>
-      <View style={styles.featuredBody}>
-        <Txt style={styles.featuredTitle}>{event.title}</Txt>
-        <Txt variant="caption" color="textSecondary">
-          {event.subtitle}
-        </Txt>
-        <View style={styles.featuredFooter}>
-          <View style={styles.flex}>
-            {event.teamsLabel ? (
-              <View style={styles.teamsRow}>
-                <View style={[styles.dot, { backgroundColor: color }]} />
-                <Txt style={[styles.teamsText, { color }]}>{event.teamsLabel}</Txt>
-              </View>
-            ) : null}
-            {event.dateLabel ? (
-              <Txt variant="caption" color="textTertiary" style={styles.dateText}>
-                {event.dateLabel}
-              </Txt>
-            ) : null}
-          </View>
-          <Pressable style={styles.detailBtn}>
-            <Txt style={styles.detailText}>Ver detalle</Txt>
-          </Pressable>
+
+      {/* Franja inferior: equipos/fecha + Ver detalle */}
+      <View style={styles.featuredFooter}>
+        <View style={styles.flex}>
+          {event.teamsLabel ? (
+            <View style={styles.teamsRow}>
+              <View style={[styles.dot, { backgroundColor: color }]} />
+              <Txt style={[styles.teamsText, { color }]}>{event.teamsLabel}</Txt>
+            </View>
+          ) : null}
+          {event.dateLabel ? (
+            <Txt variant="caption" color="textTertiary" style={styles.dateText}>
+              {event.dateLabel}
+            </Txt>
+          ) : null}
         </View>
+        <Pressable style={styles.detailBtn}>
+          <Txt style={styles.detailText}>Ver detalle</Txt>
+        </Pressable>
       </View>
     </View>
   );
@@ -215,7 +231,7 @@ function EventRow({ event }: { event: LeagueEvent }) {
           {event.subtitle}
         </Txt>
       </View>
-      <Tag label={EVENT_STATUS_LABELS[event.status]} color={color} />
+      <Tag label={EVENT_STATUS_LABELS[event.status]} color={color} uppercase={false} />
       <IconChevronRight size={18} color={theme.colors.textTertiary} strokeWidth={2} />
     </Pressable>
   );
@@ -254,7 +270,19 @@ const styles = StyleSheet.create({
   featured: {
     backgroundColor: theme.colors.surface1,
     borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.borderDefault,
     overflow: 'hidden',
+  },
+  banner: { height: 132 },
+  bannerArt: { position: 'absolute', top: 0, left: 0, right: 0 },
+  bannerScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 86,
+    backgroundColor: '#08090bd9',
   },
   codeBadge: {
     position: 'absolute',
@@ -264,6 +292,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: theme.radius.md,
     backgroundColor: '#0c0c10d9',
+    borderWidth: 1,
+    borderColor: theme.colors.borderDefault,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -273,13 +303,24 @@ const styles = StyleSheet.create({
     top: theme.spacing.md,
     right: theme.spacing.md,
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: theme.radius.sm,
   },
   statusText: { fontFamily: fonts.label, fontSize: 11, color: theme.colors.white, letterSpacing: 0.5 },
-  featuredBody: { padding: theme.spacing.lg, gap: 4 },
+  bannerText: {
+    position: 'absolute',
+    left: theme.spacing.lg,
+    right: theme.spacing.lg,
+    bottom: theme.spacing.md,
+    gap: 2,
+  },
   featuredTitle: { fontFamily: fonts.headingBold, fontSize: 24, lineHeight: 30, color: theme.colors.textPrimary },
-  featuredFooter: { flexDirection: 'row', alignItems: 'flex-end', marginTop: theme.spacing.md },
+  featuredFooter: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+  },
   teamsRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
   dot: { width: 8, height: 8, borderRadius: 4 },
   teamsText: { fontFamily: fonts.label, fontSize: 13 },

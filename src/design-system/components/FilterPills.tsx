@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   pill: {
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 7,
-    borderRadius: theme.radius.full,
+    borderRadius: theme.radius.sm,
     backgroundColor: theme.colors.surfacePill,
     borderWidth: 1,
     borderColor: theme.colors.borderDefault,

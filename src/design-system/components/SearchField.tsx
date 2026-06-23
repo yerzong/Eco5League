@@ -42,7 +42,9 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: theme.spacing.lg,
     backgroundColor: theme.colors.surface1,
-    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.borderDefault,
+    borderRadius: theme.radius.sm,
   },
   input: {
     flex: 1,
