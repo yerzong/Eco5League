@@ -31,7 +31,11 @@ const DEMO_CODE = '529713';
 
 export function RecuperarCodigoScreen({ navigation, route }: Props) {
   const { email } = route.params;
-  const exit = useExitConfirm();
+  // Cancelar la verificación → vuelve al inicio (Login).
+  const exit = useExitConfirm({
+    onConfirmExit: () =>
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+  });
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>();

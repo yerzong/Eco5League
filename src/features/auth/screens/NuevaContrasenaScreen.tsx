@@ -37,7 +37,11 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'NuevaContrasena'>
 
 export function NuevaContrasenaScreen({ navigation, route }: Props) {
   const { email } = route.params;
-  const exit = useExitConfirm();
+  // Salir cancela toda la recuperación → vuelve al inicio (Login).
+  const exit = useExitConfirm({
+    onConfirmExit: () =>
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+  });
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [errors, setErrors] = useState<{ password?: string; confirm?: string }>(

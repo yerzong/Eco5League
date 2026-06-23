@@ -5,15 +5,25 @@
  * Uso:
  *   const exit = useExitConfirm();
  *   <ConfirmModal visible={exit.visible} onCancel={exit.onCancel} onConfirm={exit.onConfirm} ... />
+ *
+ * Por defecto, al confirmar ejecuta la acción de regreso pendiente (retroceder
+ * un paso). Si se pasa `onConfirmExit`, ejecuta esa acción en su lugar — útil
+ * para salir de un flujo completo (p. ej. reset a Login).
  */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
-export function useExitConfirm() {
+interface ExitConfirmOptions {
+  /** Acción al confirmar la salida. Default: retroceder un paso. */
+  onConfirmExit?: () => void;
+}
+
+export function useExitConfirm(options?: ExitConfirmOptions) {
   const navigation = useNavigation();
   const [visible, setVisible] = useState(false);
   const confirmed = useRef(false);
   const pendingAction = useRef<any>(null);
+  const onConfirmExit = options?.onConfirmExit;
 
   useEffect(() => {
     const unsub = navigation.addListener('beforeRemove', (e: any) => {
@@ -34,7 +44,11 @@ export function useExitConfirm() {
   const onConfirm = () => {
     confirmed.current = true;
     setVisible(false);
-    if (pendingAction.current) navigation.dispatch(pendingAction.current);
+    if (onConfirmExit) {
+      onConfirmExit();
+    } else if (pendingAction.current) {
+      navigation.dispatch(pendingAction.current);
+    }
   };
 
   /** Permite la siguiente salida sin pedir confirmación (acciones intencionales). */
