@@ -26,6 +26,7 @@ export {
   IconChevronLeft,
   IconChevronDown,
   IconCamera,
+  IconPhoto,
   IconCalendar,
   IconPhone,
   IconPlus,

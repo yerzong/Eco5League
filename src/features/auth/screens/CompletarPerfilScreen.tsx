@@ -15,7 +15,11 @@ import {
   View,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {
+  launchCamera,
+  launchImageLibrary,
+  type CameraOptions,
+} from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   removeBackground,
@@ -39,6 +43,7 @@ import {
 import { NATIONALITIES } from '@/shared/data/nationalities';
 import {
   IconCamera,
+  IconPhoto,
   IconCalendar,
   IconDeviceGamepad2,
   IconBrandXbox,
@@ -96,6 +101,8 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   const [socials, setSocials] = useState<AddedSocial[]>([]);
   const [paisSheet, setPaisSheet] = useState(false);
   const paisSheetRef = useRef<BottomSheetHandle>(null);
+  const [photoSheet, setPhotoSheet] = useState(false);
+  const photoSheetRef = useRef<BottomSheetHandle>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [tempDate, setTempDate] = useState(new Date(2000, 0, 1));
 
@@ -113,16 +120,10 @@ export function CompletarPerfilScreen({ navigation }: Props) {
     paisSheetRef.current?.close();
   };
 
-  const pickPhoto = async () => {
-    const res = await launchImageLibrary({
-      mediaType: 'photo',
-      selectionLimit: 1,
-      quality: 0.9,
-    });
-    const uri = res.assets?.[0]?.uri;
+  // Aplica la foto elegida y, si se puede, le recorta el fondo (PNG limpio).
+  const applyPhoto = async (uri?: string) => {
     if (!uri) return;
     setPhoto(uri); // muestra la original de inmediato
-    // Intenta recortar el fondo (PNG limpio). Si falla, conserva la original.
     if (hasBackgroundRemover) {
       setProcessingPhoto(true);
       try {
@@ -134,6 +135,22 @@ export function CompletarPerfilScreen({ navigation }: Props) {
         setProcessingPhoto(false);
       }
     }
+  };
+
+  // Toma con cámara o elige de la galería según la opción del sheet.
+  const pickFrom = async (source: 'camera' | 'library') => {
+    photoSheetRef.current?.close();
+    const options: CameraOptions = {
+      mediaType: 'photo',
+      quality: 0.9,
+      saveToPhotos: false,
+    };
+    const res =
+      source === 'camera'
+        ? await launchCamera(options)
+        : await launchImageLibrary({ ...options, selectionLimit: 1 });
+    if (res.didCancel) return;
+    await applyPhoto(res.assets?.[0]?.uri);
   };
 
   // Progreso = campos requeridos completados / total (correo viene precargado).
@@ -195,7 +212,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
 
             {/* Foto de perfil */}
             <View style={styles.photoRow}>
-              <Pressable style={styles.photoBox} onPress={pickPhoto}>
+              <Pressable style={styles.photoBox} onPress={() => setPhotoSheet(true)}>
                 {photo ? (
                   <Image source={{ uri: photo }} style={styles.photoImg} />
                 ) : (
@@ -407,6 +424,30 @@ export function CompletarPerfilScreen({ navigation }: Props) {
         onCancel={exit.onCancel}
         onConfirm={exit.onConfirm}
       />
+
+      {photoSheet ? (
+        <BottomSheet
+          ref={photoSheetRef}
+          title="Foto de perfil"
+          onClose={() => setPhotoSheet(false)}>
+          <Pressable style={styles.photoOption} onPress={() => pickFrom('camera')}>
+            <View style={styles.photoOptionIcon}>
+              <IconCamera size={22} color={theme.colors.textPrimary} strokeWidth={1.9} />
+            </View>
+            <Txt variant="body" color="textPrimary" style={styles.flex}>
+              Tomar foto
+            </Txt>
+          </Pressable>
+          <Pressable style={styles.photoOption} onPress={() => pickFrom('library')}>
+            <View style={styles.photoOptionIcon}>
+              <IconPhoto size={22} color={theme.colors.textPrimary} strokeWidth={1.9} />
+            </View>
+            <Txt variant="body" color="textPrimary" style={styles.flex}>
+              Elegir de la galería
+            </Txt>
+          </Pressable>
+        </BottomSheet>
+      ) : null}
 
       {paisSheet ? (
         <BottomSheet
@@ -628,6 +669,23 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderDefault,
   },
   flag: { fontSize: 22 },
+  // Opciones del selector de foto
+  photoOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderDefault,
+  },
+  photoOptionIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   // Footer
   footer: {
     paddingHorizontal: theme.spacing['3xl'],
