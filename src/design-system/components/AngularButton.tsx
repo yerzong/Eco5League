@@ -71,7 +71,7 @@ export function AngularButton({
         </Svg>
       )}
       <View style={styles.labelWrap}>
-        <Txt variant="title" color="white" style={styles.label}>
+        <Txt variant="title" color="white" style={styles.label} numberOfLines={1}>
           {label}
         </Txt>
       </View>
@@ -91,5 +91,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  label: { letterSpacing: 1 },
+  // lineHeight holgado para que los acentos (Ó, etc.) no se recorten arriba.
+  label: { letterSpacing: 1, lineHeight: 26 },
 });

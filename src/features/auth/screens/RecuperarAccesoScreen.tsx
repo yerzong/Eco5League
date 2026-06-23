@@ -103,6 +103,7 @@ export function RecuperarAccesoScreen({ navigation }: Props) {
               label="ENVIAR CÓDIGO"
               height={54}
               borderColor="#f04d60"
+              style={styles.cta}
               onPress={handleSend}
             />
 
@@ -150,6 +151,7 @@ const styles = StyleSheet.create({
   },
   subtitle: { marginTop: theme.spacing.sm },
   field: { marginTop: theme.spacing['2xl'] },
+  cta: { marginTop: theme.spacing.xl },
   back2: { alignSelf: 'center', marginTop: theme.spacing.xl },
   backText: {
     fontFamily: fonts.button,
