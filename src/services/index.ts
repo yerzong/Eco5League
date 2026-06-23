@@ -54,4 +54,4 @@ export type {
   ActivityItem,
 } from './dashboard/types';
 export type { NotificationsService, NotificationItem } from './notifications/types';
-export type { EventsService, EventsData, LeagueEvent } from './events/types';
+export type { EventsService, LeagueEvent } from './events/types';

@@ -1,8 +1,11 @@
 /**
  * SA-M02 · Eventos (gestión) — fiel al diseño de Figma.
- * Búsqueda + filtros + evento destacado + próximos eventos + FAB para crear.
+ * Búsqueda + filtros (funcionales) + evento destacado + próximos eventos + FAB.
+ *
+ * Vista por defecto (sin búsqueda ni filtro): destacado + próximos.
+ * Al buscar o filtrar: una sola lista filtrada (con estado vacío si no hay).
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,16 +21,15 @@ import {
   GameArt,
   type FilterOption,
 } from '@/design-system/components';
-import { IconChevronRight } from '@/design-system/icons';
+import { IconChevronRight, IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/events/status';
-import { eventsService, type EventsData, type LeagueEvent } from '@/services';
+import { eventsService, type LeagueEvent } from '@/services';
+import { filterEvents, type EventFilterKey } from '../eventFilters';
 
-type Filter = 'todos' | 'liga' | 'torneo' | 'copa' | 'en_curso';
-
-const FILTERS: FilterOption<Filter>[] = [
+const FILTERS: FilterOption<EventFilterKey>[] = [
   { key: 'todos', label: 'Todos' },
   { key: 'liga', label: 'Liga' },
   { key: 'torneo', label: 'Torneo' },
@@ -52,14 +54,22 @@ function statusColor(status: EventStatus): string {
 export function EventosScreen() {
   const navigation = useNavigation<any>();
   const { initials } = useSession();
-  const [filter, setFilter] = useState<Filter>('todos');
-  const [data, setData] = useState<EventsData>({ upcoming: [] });
+  const [events, setEvents] = useState<LeagueEvent[]>([]);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<EventFilterKey>('todos');
 
   useEffect(() => {
-    eventsService.getEvents().then(setData);
+    eventsService.getEvents().then(setEvents);
   }, []);
 
-  const featured = data.featured;
+  // Vista por defecto = sin búsqueda ni filtro: muestra destacado + próximos.
+  const isDefaultView = filter === 'todos' && !search.trim();
+  const filtered = useMemo(
+    () => filterEvents(events, search, filter),
+    [events, search, filter],
+  );
+  const featured = events.find(e => e.featured);
+  const upcoming = events.filter(e => !e.featured);
 
   return (
     <View style={styles.root}>
@@ -80,29 +90,60 @@ export function EventosScreen() {
 
         <ScrollView
           contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <SearchField placeholder="Buscar evento..." />
+          <SearchField
+            placeholder="Buscar evento..."
+            value={search}
+            onChangeText={setSearch}
+          />
           <View style={styles.filters}>
             <FilterPills options={FILTERS} value={filter} onChange={setFilter} />
           </View>
 
-          {/* Evento destacado */}
-          {featured ? (
+          {isDefaultView ? (
             <>
-              <Eyebrow label="// Evento destacado" />
-              <FeaturedCard event={featured} style={styles.afterEyebrow} />
-            </>
-          ) : null}
+              {/* Evento destacado */}
+              {featured ? (
+                <>
+                  <Eyebrow label="// Evento destacado" />
+                  <FeaturedCard event={featured} style={styles.afterEyebrow} />
+                </>
+              ) : null}
 
-          {/* Próximos eventos */}
-          <View style={styles.sectionGap}>
-            <Eyebrow label="// Próximos eventos" />
-          </View>
-          <View style={styles.rows}>
-            {data.upcoming.map(ev => (
-              <EventRow key={ev.id} event={ev} />
-            ))}
-          </View>
+              {/* Próximos eventos */}
+              <View style={styles.sectionGap}>
+                <Eyebrow label="// Próximos eventos" />
+              </View>
+              <View style={styles.rows}>
+                {upcoming.map(ev => (
+                  <EventRow key={ev.id} event={ev} />
+                ))}
+              </View>
+            </>
+          ) : filtered.length > 0 ? (
+            /* Resultado de búsqueda / filtro */
+            <View style={styles.rows}>
+              <Txt variant="caption" color="textTertiary" style={styles.resultCount}>
+                {filtered.length}{' '}
+                {filtered.length === 1 ? 'resultado' : 'resultados'}
+              </Txt>
+              {filtered.map(ev => (
+                <EventRow key={ev.id} event={ev} />
+              ))}
+            </View>
+          ) : (
+            /* Estado vacío */
+            <View style={styles.empty}>
+              <IconSearch size={32} color={theme.colors.textTertiary} strokeWidth={1.5} />
+              <Txt variant="bodyMedium" color="textSecondary" style={styles.emptyTitle}>
+                Sin resultados
+              </Txt>
+              <Txt variant="caption" color="textTertiary" style={styles.emptyText}>
+                Prueba con otro término o cambia el filtro.
+              </Txt>
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
 
@@ -153,7 +194,7 @@ function FeaturedCard({ event, style }: { event: LeagueEvent; style?: any }) {
   );
 }
 
-/** Fila de un evento próximo (miniatura + datos + estado + chevron). */
+/** Fila de un evento (miniatura + datos + estado + chevron). */
 function EventRow({ event }: { event: LeagueEvent }) {
   const color = statusColor(event.status);
   return (
@@ -208,6 +249,7 @@ const styles = StyleSheet.create({
   afterEyebrow: { marginTop: theme.spacing.md },
   sectionGap: { marginTop: theme.spacing.xl },
   rows: { gap: theme.spacing.md, marginTop: theme.spacing.md },
+  resultCount: { marginBottom: theme.spacing.xs },
   // Featured
   featured: {
     backgroundColor: theme.colors.surface1,
@@ -261,6 +303,10 @@ const styles = StyleSheet.create({
   },
   thumb: { width: 64 },
   rowBody: { flex: 1, gap: 2 },
+  // Empty state
+  empty: { alignItems: 'center', paddingVertical: theme.spacing['4xl'], gap: theme.spacing.sm },
+  emptyTitle: { marginTop: theme.spacing.sm },
+  emptyText: { textAlign: 'center' },
   // FAB
   fab: { position: 'absolute', right: theme.spacing['2xl'], bottom: theme.spacing['2xl'] },
 });

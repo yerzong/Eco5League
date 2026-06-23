@@ -10,3 +10,12 @@ export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
   finalizado: 'Final.',
   proximo: 'Próximo',
 };
+
+/** Formato de competencia de un evento. */
+export type EventFormat = 'liga' | 'torneo' | 'copa';
+
+export const EVENT_FORMAT_LABELS: Record<EventFormat, string> = {
+  liga: 'Liga',
+  torneo: 'Torneo',
+  copa: 'Copa',
+};
