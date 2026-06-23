@@ -53,7 +53,7 @@ export function validateStrongPassword(value: string): string | undefined {
 export const MIN_AGE = 13;
 
 export function validateBirthDate(value: string): string | undefined {
-  if (!value.trim()) return 'Selecciona tu fecha de nacimiento.';
+  if (!value.trim()) return 'Ingresa tu fecha de nacimiento.';
   const m = value.match(/(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})/);
   if (!m) return 'Fecha inválida.';
   const [, dd, mm, yyyy] = m.map(Number);

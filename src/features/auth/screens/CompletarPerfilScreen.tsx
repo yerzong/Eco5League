@@ -29,7 +29,6 @@ import {
   Eyebrow,
   SectionLabel,
   TextField,
-  SelectField,
   AngularButton,
   ConfirmModal,
   ProgressBar,
@@ -57,6 +56,15 @@ import { getNetwork, type AddedSocial } from '@/features/auth/socialNetworks';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CompletarPerfil'>;
+
+/** Quita no-dígitos y reconstruye "dd / mm / aaaa" según cuántos dígitos hay. */
+function formatDateInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  let result = digits.slice(0, 2);
+  if (digits.length > 2) result += ' / ' + digits.slice(2, 4);
+  if (digits.length > 4) result += ' / ' + digits.slice(4);
+  return result;
+}
 
 /** Etiqueta de campo con "*" o "· Opcional" para usar fuera del TextField. */
 function FieldLabel({ label, optional }: { label: string; optional?: boolean }) {
@@ -134,7 +142,6 @@ export function CompletarPerfilScreen({ navigation }: Props) {
     !!apellidos.trim(),
     !!fecha.trim(),
     !!pais.trim(),
-    !!gamertag.trim(),
     true, // correo (precargado)
   ];
   const progress = requiredDone.filter(Boolean).length / requiredDone.length;
@@ -143,7 +150,6 @@ export function CompletarPerfilScreen({ navigation }: Props) {
     apellidos?: string;
     fecha?: string;
     pais?: string;
-    gamertag?: string;
   }>({});
 
   const REQUIRED = 'Este campo es requerido.';
@@ -157,7 +163,6 @@ export function CompletarPerfilScreen({ navigation }: Props) {
       apellidos: validateRequired(apellidos, REQUIRED),
       fecha: validateBirthDate(fecha),
       pais: validateRequired(pais, REQUIRED),
-      gamertag: validateRequired(gamertag, REQUIRED),
     };
     setErrors(next);
     if (!Object.values(next).some(Boolean)) {
@@ -238,15 +243,18 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               }}
               error={errors.apellidos}
             />
-            <SelectField
+            <TextField
               label="Fecha de nacimiento"
               required
-              icon={IconCalendar}
-              rightIcon={IconCalendar}
               placeholder="dd / mm / aaaa"
+              keyboardType="numeric"
               value={fecha}
+              onChangeText={t => {
+                setFecha(formatDateInput(t));
+                clear('fecha');
+              }}
               error={errors.fecha}
-              onPress={() => setShowCalendar(true)}
+              rightAction={{ icon: IconCalendar, onPress: () => setShowCalendar(true) }}
             />
             <SelectField
               label="Nacionalidad"
@@ -261,12 +269,11 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             <SectionLabel label="Identidad de juego" />
             <TextField
               label="Gamertag"
-              required
+              optional
               disabled
               icon={IconDeviceGamepad2}
               placeholder="Verifica tu Xbox para precargarlo"
               value={gamertag}
-              error={errors.gamertag}
             />
 
             {/* Tarjeta verificación Xbox */}

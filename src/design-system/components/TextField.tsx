@@ -35,6 +35,8 @@ interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   disabled?: boolean;
   /** Área de texto multilínea (bio). */
   multiline?: boolean;
+  /** Ícono presionable a la derecha (p. ej. calendario para abrir picker). */
+  rightAction?: { icon: IconCmp; onPress: () => void };
 }
 
 export function TextField({
@@ -47,6 +49,7 @@ export function TextField({
   invalid,
   disabled,
   multiline,
+  rightAction,
   ...inputProps
 }: TextFieldProps) {
   const [hidden, setHidden] = useState(!!password);
@@ -94,6 +97,10 @@ export function TextField({
             ) : (
               <IconEyeOff size={20} color={theme.colors.textSecondary} strokeWidth={1.75} />
             )}
+          </TouchableOpacity>
+        ) : rightAction ? (
+          <TouchableOpacity onPress={rightAction.onPress} hitSlop={8}>
+            <rightAction.icon size={20} color={theme.colors.textSecondary} strokeWidth={1.75} />
           </TouchableOpacity>
         ) : null}
       </View>
