@@ -7,12 +7,14 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -86,15 +88,15 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   const [socials, setSocials] = useState<AddedSocial[]>([]);
   const [paisSheet, setPaisSheet] = useState(false);
   const paisSheetRef = useRef<BottomSheetHandle>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date(2000, 0, 1));
 
-  /** Formatea lo escrito como "dd / mm / aaaa" mientras se teclea. */
-  const onFechaChange = (t: string) => {
-    const d = t.replace(/\D/g, '').slice(0, 8);
-    let f = d;
-    if (d.length > 4) f = `${d.slice(0, 2)} / ${d.slice(2, 4)} / ${d.slice(4)}`;
-    else if (d.length > 2) f = `${d.slice(0, 2)} / ${d.slice(2)}`;
-    setFecha(f);
+  const confirmDate = () => {
+    const dd = String(tempDate.getDate()).padStart(2, '0');
+    const mm = String(tempDate.getMonth() + 1).padStart(2, '0');
+    setFecha(`${dd} / ${mm} / ${tempDate.getFullYear()}`);
     clear('fecha');
+    setShowCalendar(false);
   };
 
   const selectPais = (label: string) => {
@@ -238,16 +240,15 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               }}
               error={errors.apellidos}
             />
-            <TextField
+            <SelectField
               label="Fecha de nacimiento"
               required
               icon={IconCalendar}
+              rightIcon={IconCalendar}
               placeholder="dd / mm / aaaa"
-              keyboardType="number-pad"
-              maxLength={14}
               value={fecha}
-              onChangeText={onFechaChange}
               error={errors.fecha}
+              onPress={() => setShowCalendar(true)}
             />
             <SelectField
               label="Nacionalidad"
@@ -427,6 +428,42 @@ export function CompletarPerfilScreen({ navigation }: Props) {
           })}
         </BottomSheet>
       ) : null}
+
+      {/* Calendario fecha de nacimiento */}
+      <Modal
+        visible={showCalendar}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCalendar(false)}>
+        <Pressable style={styles.calScrim} onPress={() => setShowCalendar(false)} />
+        <View style={styles.calSheet}>
+          <View style={styles.calHeader}>
+            <Pressable onPress={() => setShowCalendar(false)} hitSlop={8}>
+              <Txt variant="button" color="textSecondary">
+                Cancelar
+              </Txt>
+            </Pressable>
+            <Txt variant="label" color="textSecondary">
+              FECHA DE NACIMIENTO
+            </Txt>
+            <Pressable onPress={confirmDate} hitSlop={8}>
+              <Txt variant="button" color="brandRedHover">
+                Listo
+              </Txt>
+            </Pressable>
+          </View>
+          <DateTimePicker
+            value={tempDate}
+            mode="date"
+            display="inline"
+            maximumDate={new Date()}
+            themeVariant="dark"
+            accentColor={theme.colors.brandRed}
+            onChange={(_, d) => d && setTempDate(d)}
+            style={styles.calPicker}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -559,6 +596,24 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.borderStrong,
     borderStyle: 'dashed',
   },
+  // Calendario
+  calScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' },
+  calSheet: {
+    backgroundColor: theme.colors.surface1,
+    borderTopLeftRadius: theme.radius.xl,
+    borderTopRightRadius: theme.radius.xl,
+    borderTopWidth: 1,
+    borderColor: theme.colors.borderDefault,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing['3xl'],
+  },
+  calHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.lg,
+  },
+  calPicker: { alignSelf: 'center' },
   // Selector de país
   countryRow: {
     flexDirection: 'row',
