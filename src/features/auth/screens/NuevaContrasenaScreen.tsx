@@ -17,7 +17,7 @@ import {
   Txt,
   GlowBackground,
   BackButton,
-  Eyebrow,
+  AuthHeader,
   TextField,
   AngularButton,
   PasswordRules,
@@ -25,12 +25,12 @@ import {
 } from '@/design-system/components';
 import { IconLock } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
-import { fonts } from '@/design-system/tokens/typography';
 import {
   validateStrongPassword,
   validatePasswordMatch,
 } from '@/shared/utils/validation';
 import { useExitConfirm } from '@/shared/hooks/useExitConfirm';
+import { authService } from '@/services';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'NuevaContrasena'>;
@@ -52,13 +52,14 @@ export function NuevaContrasenaScreen({ navigation, route }: Props) {
     if (errors[k]) setErrors(e => ({ ...e, [k]: undefined }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const next = {
       password: validateStrongPassword(password),
       confirm: validatePasswordMatch(password, confirm),
     };
     setErrors(next);
     if (!next.password && !next.confirm) {
+      await authService.resetPassword(email, password);
       exit.bypass();
       navigation.navigate('ContrasenaRestablecida', { email });
     }
@@ -78,18 +79,13 @@ export function NuevaContrasenaScreen({ navigation, route }: Props) {
             showsVerticalScrollIndicator={false}>
             <BackButton style={styles.back} />
 
-            {/* Badge */}
-            <View style={styles.badge}>
-              <IconLock size={26} color={theme.colors.white} strokeWidth={2} />
-            </View>
-
-            {/* Header */}
-            <Eyebrow label="// Nueva contraseña" />
-            <Txt style={styles.title}>CREA TU CONTRASEÑA</Txt>
-            <Txt variant="body" color="textSecondary" style={styles.subtitle}>
-              Tu identidad fue verificada. Elige una contraseña segura de mínimo
-              8 caracteres.
-            </Txt>
+            <AuthHeader
+              style={styles.header}
+              icon={IconLock}
+              eyebrow="// Nueva contraseña"
+              title="CREA TU CONTRASEÑA"
+              subtitle="Tu identidad fue verificada. Elige una contraseña segura de mínimo 8 caracteres."
+            />
 
             {/* Campos */}
             <View style={styles.fields}>
@@ -126,7 +122,6 @@ export function NuevaContrasenaScreen({ navigation, route }: Props) {
             <AngularButton
               label="GUARDAR CONTRASEÑA"
               height={54}
-              borderColor="#f04d60"
               style={styles.cta}
               onPress={handleSave}
             />
@@ -161,24 +156,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing['2xl'],
   },
   back: { marginTop: theme.spacing.md },
-  badge: {
-    width: 60,
-    height: 60,
-    borderRadius: 99,
-    backgroundColor: theme.colors.brandRed,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.xl,
-  },
-  title: {
-    fontFamily: fonts.headingBold,
-    fontSize: 34,
-    lineHeight: 40,
-    color: theme.colors.textPrimary,
-    marginTop: theme.spacing.xs,
-  },
-  subtitle: { marginTop: theme.spacing.sm },
+  header: { marginTop: theme.spacing.xl },
   fields: { marginTop: theme.spacing['2xl'], gap: theme.spacing.xl },
   cta: { marginTop: theme.spacing.xl },
   note: { textAlign: 'center', marginTop: theme.spacing.lg },

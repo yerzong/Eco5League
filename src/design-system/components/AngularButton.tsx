@@ -11,6 +11,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Svg, { Defs, LinearGradient, Polygon, Stop } from 'react-native-svg';
+import { theme } from '@/design-system/theme';
 import { Txt } from './Txt';
 
 interface AngularButtonProps {
@@ -33,7 +34,7 @@ export function AngularButton({
   height = 60,
   from = '#ec2740',
   to = '#9e0c21',
-  borderColor,
+  borderColor = theme.colors.brandRedBorder,
   style,
 }: AngularButtonProps) {
   const [w, setW] = useState(0);

@@ -22,6 +22,8 @@ export const typography = {
   h1: { fontFamily: fonts.headingBold, fontSize: 42, lineHeight: 44 },
   h2: { fontFamily: fonts.heading, fontSize: 22, lineHeight: 24 },
   title: { fontFamily: fonts.heading, fontSize: 18, lineHeight: 20 },
+  /** Título grande de pantalla (headers de auth/onboarding). */
+  screenTitle: { fontFamily: fonts.headingBold, fontSize: 34, lineHeight: 40 },
   sectionLabel: { fontFamily: fonts.heading, fontSize: 13, lineHeight: 16 },
   overline: { fontFamily: fonts.heading, fontSize: 10, lineHeight: 12 },
   button: { fontFamily: fonts.button, fontSize: 14 },

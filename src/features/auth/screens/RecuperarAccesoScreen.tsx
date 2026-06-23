@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -17,41 +16,43 @@ import {
   Txt,
   GlowBackground,
   BackButton,
-  Eyebrow,
+  AuthHeader,
   TextField,
   AngularButton,
+  TextLink,
 } from '@/design-system/components';
 import { IconLock, IconMail } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
-import { fonts } from '@/design-system/tokens/typography';
 import { validateEmail } from '@/shared/utils/validation';
-import { MOCK_USERS } from '@/shared/auth/mockUsers';
+import { authService } from '@/services';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'RecuperarAcceso'>;
 
-/** Demo: ¿el correo existe en el sistema? (mientras no hay backend). */
-function emailIsRegistered(email: string): boolean {
-  const n = email.trim().toLowerCase();
-  return MOCK_USERS.some(u => u.email.toLowerCase() === n);
-}
-
 export function RecuperarAccesoScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string>();
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const formatErr = validateEmail(email);
     if (formatErr) {
       setError(formatErr);
       return;
     }
-    if (!emailIsRegistered(email)) {
-      setError('Este correo no está registrado. Verifica tus datos.');
-      return;
+    setLoading(true);
+    try {
+      const registered = await authService.isEmailRegistered(email);
+      if (!registered) {
+        setError('Este correo no está registrado. Verifica tus datos.');
+        return;
+      }
+      await authService.requestPasswordReset(email);
+      setError(undefined);
+      navigation.navigate('RecuperarCodigo', { email: email.trim() });
+    } finally {
+      setLoading(false);
     }
-    setError(undefined);
-    navigation.navigate('RecuperarCodigo', { email: email.trim() });
   };
 
   return (
@@ -68,20 +69,14 @@ export function RecuperarAccesoScreen({ navigation }: Props) {
             showsVerticalScrollIndicator={false}>
             <BackButton style={styles.back} />
 
-            {/* Badge */}
-            <View style={styles.badge}>
-              <IconLock size={26} color={theme.colors.white} strokeWidth={2} />
-            </View>
+            <AuthHeader
+              style={styles.header}
+              icon={IconLock}
+              eyebrow="// Recuperar acceso"
+              title="RECUPERA TU CUENTA"
+              subtitle="Escribe tu correo y te enviaremos un código de 6 dígitos para restablecer tu contraseña."
+            />
 
-            {/* Header */}
-            <Eyebrow label="// Recuperar acceso" />
-            <Txt style={styles.title}>RECUPERA TU CUENTA</Txt>
-            <Txt variant="body" color="textSecondary" style={styles.subtitle}>
-              Escribe tu correo y te enviaremos un código de 6 dígitos para
-              restablecer tu contraseña.
-            </Txt>
-
-            {/* Campo correo */}
             <View style={styles.field}>
               <TextField
                 label="Correo"
@@ -98,19 +93,18 @@ export function RecuperarAccesoScreen({ navigation }: Props) {
               />
             </View>
 
-            {/* CTA */}
             <AngularButton
-              label="ENVIAR CÓDIGO"
+              label={loading ? 'ENVIANDO…' : 'ENVIAR CÓDIGO'}
               height={54}
-              borderColor="#f04d60"
               style={styles.cta}
               onPress={handleSend}
             />
 
-            {/* Volver a login */}
-            <Pressable style={styles.back2} onPress={() => navigation.goBack()}>
-              <Txt style={styles.backText}>«  Volver a iniciar sesión</Txt>
-            </Pressable>
+            <TextLink
+              label="«  Volver a iniciar sesión"
+              onPress={() => navigation.goBack()}
+              style={styles.link}
+            />
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -132,32 +126,10 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing['2xl'],
   },
   back: { marginTop: theme.spacing.md },
-  badge: {
-    width: 60,
-    height: 60,
-    borderRadius: 99,
-    backgroundColor: theme.colors.brandRed,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.xl,
-  },
-  title: {
-    fontFamily: fonts.headingBold,
-    fontSize: 34,
-    lineHeight: 40,
-    color: theme.colors.textPrimary,
-    marginTop: theme.spacing.xs,
-  },
-  subtitle: { marginTop: theme.spacing.sm },
+  header: { marginTop: theme.spacing.xl },
   field: { marginTop: theme.spacing['2xl'] },
   cta: { marginTop: theme.spacing.xl },
-  back2: { alignSelf: 'center', marginTop: theme.spacing.xl },
-  backText: {
-    fontFamily: fonts.button,
-    fontSize: 13,
-    color: theme.colors.brandRedHover,
-  },
+  link: { marginTop: theme.spacing.xl },
   note: {
     textAlign: 'center',
     paddingHorizontal: theme.spacing['3xl'],

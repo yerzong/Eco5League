@@ -25,7 +25,7 @@ import { IconMail, IconLock, IconBrandXbox, IconBrandDiscord } from '@/design-sy
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
-import { authenticate } from '@/shared/auth/mockUsers';
+import { authService } from '@/services';
 import { validateEmail, validatePassword } from '@/shared/utils/validation';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
 
@@ -45,7 +45,7 @@ export function LoginScreen({ navigation }: Props) {
     setCredentialError(undefined);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // 1) Validación de formato
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
@@ -54,8 +54,8 @@ export function LoginScreen({ navigation }: Props) {
     setCredentialError(undefined);
     if (eErr || pErr) return;
 
-    // 2) Autenticación contra usuarios demo
-    const result = authenticate(email, password);
+    // 2) Autenticación vía servicio (mock hoy, backend mañana)
+    const result = await authService.signIn({ email, password });
     if (result.ok) {
       signIn(result.user.role);
       return;
@@ -142,7 +142,6 @@ export function LoginScreen({ navigation }: Props) {
             <AngularButton
               label="INICIAR SESIÓN"
               height={54}
-              borderColor="#f04d60"
               onPress={handleSubmit}
             />
 

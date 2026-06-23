@@ -18,6 +18,8 @@ export const palette = {
   // Marca
   brandRed: '#c8102e',
   brandRedHover: '#e11d33',
+  /** Borde claro de los botones angulares (CTA). */
+  brandRedBorder: '#f04d60',
 
   // Texto
   textPrimary: '#f2f3f5',

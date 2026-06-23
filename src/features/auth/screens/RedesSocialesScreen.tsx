@@ -79,7 +79,6 @@ export function RedesSocialesScreen({ navigation, route }: Props) {
       <AngularButton
         label="AGREGAR"
         height={56}
-        borderColor="#f04d60"
         style={styles.cta}
         onPress={handleAdd}
       />

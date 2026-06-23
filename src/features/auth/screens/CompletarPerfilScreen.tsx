@@ -392,7 +392,6 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             <AngularButton
               label="FINALIZAR PERFIL"
               height={56}
-              borderColor="#f04d60"
               onPress={handleFinalizar}
             />
           </View>

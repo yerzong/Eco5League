@@ -30,14 +30,8 @@ import {
   validateStrongPassword,
   validatePasswordMatch,
 } from '@/shared/utils/validation';
-import { MOCK_USERS } from '@/shared/auth/mockUsers';
+import { authService } from '@/services';
 import type { OnboardingStackParamList } from '@/app/navigation/types';
-
-/** Demo: ¿el correo ya existe en el sistema? */
-function emailAlreadyRegistered(email: string): boolean {
-  const n = email.trim().toLowerCase();
-  return MOCK_USERS.some(u => u.email.toLowerCase() === n);
-}
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CrearCuenta'>;
 
@@ -51,9 +45,9 @@ export function CrearCuentaScreen({ navigation }: Props) {
     confirm?: string;
   }>({});
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     let emailErr = validateEmail(email);
-    if (!emailErr && emailAlreadyRegistered(email)) {
+    if (!emailErr && (await authService.isEmailRegistered(email))) {
       emailErr = 'Este correo ya está registrado. Intenta iniciar sesión.';
     }
     const next = {
@@ -140,7 +134,6 @@ export function CrearCuentaScreen({ navigation }: Props) {
             <AngularButton
               label="CREAR CUENTA"
               height={54}
-              borderColor="#f04d60"
               onPress={handleSubmit}
             />
 
