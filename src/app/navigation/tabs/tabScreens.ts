@@ -7,6 +7,7 @@ import React, { type ComponentType } from 'react';
 import { TabKey } from '@/shared/auth/roles';
 import { Placeholder } from '@/design-system/components';
 import { InicioScreen } from '@/features/eventos/screens/InicioScreen';
+import { EventosScreen } from '@/features/eventos/screens/EventosScreen';
 import { BuscarOrgScreen } from '@/features/descubrir/screens/BuscarOrgScreen';
 import { MiOrgScreen } from '@/features/organizacion/screens/MiOrgScreen';
 import { InvitacionesScreen } from '@/features/invitaciones/screens/InvitacionesScreen';
@@ -26,8 +27,8 @@ export const TAB_SCREENS: Record<TabKey, ComponentType<any>> = {
   partidas: PartidasScreen,
   tareas: TareasScreen,
   gestion: GestionScreen,
+  eventos: EventosScreen,
   // Tabs del Super-admin pendientes de maquetar
-  eventos: ph('SA-M02', 'Eventos'),
   staff: ph('SA-M03', 'Staff'),
   equipos: ph('SA-M04', 'Equipos'),
   usuarios: ph('USR', 'Usuarios'),

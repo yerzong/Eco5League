@@ -12,11 +12,11 @@ import React, {
 } from 'react';
 import {
   Animated,
-  Dimensions,
   PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,7 +24,6 @@ import { theme } from '@/design-system/theme';
 import { IconX } from '@/design-system/icons';
 import { Txt } from './Txt';
 
-const SCREEN_H = Dimensions.get('window').height;
 const DRAG_CLOSE_THRESHOLD = 120;
 
 interface BottomSheetProps {
@@ -42,6 +41,7 @@ export interface BottomSheetHandle {
 
 export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
   function BottomSheet({ title, subtitle, onClose, children }, ref) {
+  const { height: SCREEN_H } = useWindowDimensions();
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
   const scrim = useRef(new Animated.Value(0)).current;
 
@@ -59,7 +59,7 @@ export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
       Animated.timing(translateY, { toValue: SCREEN_H, duration: 220, useNativeDriver: true }),
       Animated.timing(scrim, { toValue: 0, duration: 220, useNativeDriver: true }),
     ]).start(() => onClose());
-  }, [translateY, scrim, onClose]);
+  }, [translateY, scrim, onClose, SCREEN_H]);
 
   useImperativeHandle(ref, () => ({ close }), [close]);
 

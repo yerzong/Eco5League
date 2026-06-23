@@ -3,13 +3,15 @@
  * Filtros por categoría + lista de alertas con badge de color por tipo.
  */
 import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Txt,
   GlowBackground,
   BackButton,
   Eyebrow,
+  FilterPills,
+  type FilterOption,
 } from '@/design-system/components';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
@@ -21,7 +23,7 @@ import { notificationsService, type NotificationItem } from '@/services';
 
 type Filter = 'todas' | NotificationCategory;
 
-const FILTERS: { key: Filter; label: string }[] = [
+const FILTERS: FilterOption<Filter>[] = [
   { key: 'todas', label: 'Todas' },
   { key: 'inscripcion', label: 'Inscr.' },
   { key: 'resultado', label: 'Result.' },
@@ -48,25 +50,9 @@ export function NotificacionesScreen() {
         <Txt style={styles.title}>Notificaciones</Txt>
 
         {/* Filtros */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filters}>
-          {FILTERS.map(f => {
-            const active = filter === f.key;
-            return (
-              <Pressable
-                key={f.key}
-                onPress={() => setFilter(f.key)}
-                style={[styles.pill, active && styles.pillActive]}>
-                <Txt
-                  style={active ? [styles.pillText, styles.pillTextActive] : styles.pillText}>
-                  {f.label}
-                </Txt>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <View style={styles.filters}>
+          <FilterPills options={FILTERS} value={filter} onChange={setFilter} />
+        </View>
 
         {/* Lista */}
         <ScrollView
@@ -111,21 +97,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginTop: theme.spacing.xs,
   },
-  filters: { gap: theme.spacing.sm, paddingVertical: theme.spacing.lg },
-  pill: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: 7,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surface1,
-    borderWidth: 1,
-    borderColor: theme.colors.borderDefault,
-  },
-  pillActive: {
-    backgroundColor: theme.colors.brandRed,
-    borderColor: theme.colors.brandRed,
-  },
-  pillText: { fontFamily: fonts.button, fontSize: 12, color: theme.colors.textSecondary },
-  pillTextActive: { color: theme.colors.white },
+  filters: { paddingVertical: theme.spacing.lg },
   list: { paddingBottom: theme.spacing['3xl'] },
   row: {
     flexDirection: 'row',

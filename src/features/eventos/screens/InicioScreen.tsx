@@ -33,22 +33,22 @@ export function InicioScreen() {
     <View style={styles.root}>
       <GlowBackground size={440} centerY={0.02} />
       <SafeAreaView style={styles.safe} edges={['top']}>
+        {/* Header fijo */}
+        <View style={styles.header}>
+          <View style={styles.flex}>
+            <Eyebrow label="// Panel super-admin" />
+            <Txt style={styles.greeting}>Hola, Gerson</Txt>
+          </View>
+          <HeaderActions
+            initials={initials}
+            onNotifications={() => navigation.navigate('Notificaciones')}
+            onProfile={() => navigation.navigate('Perfil')}
+          />
+        </View>
+
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.flex}>
-              <Eyebrow label="// Panel super-admin" />
-              <Txt style={styles.greeting}>Hola, Gerson</Txt>
-            </View>
-            <HeaderActions
-              initials={initials}
-              onNotifications={() => navigation.navigate('Notificaciones')}
-              onProfile={() => navigation.navigate('Perfil')}
-            />
-          </View>
-
           {/* KPIs */}
           <View style={styles.statsGrid}>
             {(data?.stats ?? []).map(s => (
@@ -110,14 +110,16 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: {
     paddingHorizontal: theme.spacing['2xl'],
-    paddingTop: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
     paddingBottom: theme.spacing['3xl'],
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
   },
   greeting: {
     fontFamily: fonts.headingBold,
