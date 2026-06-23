@@ -32,6 +32,12 @@ export const palette = {
   warning: '#e0a526',
   danger: '#c8102e',
 
+  // Acentos de dashboard / categorías (valores exactos del diseño SA)
+  accentGreen: '#2ea846',
+  accentAmber: '#e8a020',
+  navBar: '#0a0b0e',
+  surfacePill: '#1f2228',
+
   // Blanco base
   white: '#ffffff',
 } as const;
@@ -50,6 +56,19 @@ export const roleColors = {
   admin: '#b0452b',
   superadmin: '#c8102e',
 } as const;
+
+/**
+ * Color por categoría de notificación / tarea / actividad.
+ * Coincide con las etiquetas del centro de alertas y el dashboard.
+ */
+export const categoryColors = {
+  inscripcion: '#2ea846', // verde
+  transferencia: '#e8a020', // ámbar
+  resultado: '#c8102e', // rojo de marca
+  sistema: '#5e6571', // gris
+} as const;
+
+export type CategoryKey = keyof typeof categoryColors;
 
 /** Colores oficiales de proveedores de login (para botones sociales). */
 export const providerColors = {

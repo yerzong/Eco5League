@@ -20,6 +20,13 @@ export type OnboardingStackParamList = {
 
 export type AppTabParamList = Record<TabKey, undefined>;
 
+/** Stack de la app autenticada: las tabs + pantallas que se abren del header. */
+export type AppStackParamList = {
+  Tabs: undefined;
+  Notificaciones: undefined;
+  Perfil: undefined;
+};
+
 export type RootStackParamList = {
   Onboarding: undefined;
   App: undefined;

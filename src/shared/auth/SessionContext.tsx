@@ -9,6 +9,10 @@ import { Role } from './roles';
 interface SessionState {
   isAuthenticated: boolean;
   role: Role;
+  /** Nombre completo del usuario (demo). */
+  nombre: string;
+  /** Iniciales derivadas del nombre (ej. "GG"). */
+  initials: string;
   signIn: (role?: Role) => void;
   signOut: () => void;
   setRole: (role: Role) => void;
@@ -16,14 +20,27 @@ interface SessionState {
 
 const SessionContext = createContext<SessionState | undefined>(undefined);
 
+/** Toma las iniciales de un nombre: "Gerson García" → "GG". */
+function toInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(p => p[0]?.toUpperCase() ?? '')
+    .join('');
+}
+
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState<Role>('jugador');
+  const [nombre] = useState('Gerson García');
 
   const value = useMemo<SessionState>(
     () => ({
       isAuthenticated,
       role,
+      nombre,
+      initials: toInitials(nombre),
       signIn: (r?: Role) => {
         if (r) setRole(r);
         setIsAuthenticated(true);
@@ -31,7 +48,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       signOut: () => setIsAuthenticated(false),
       setRole,
     }),
-    [isAuthenticated, role],
+    [isAuthenticated, role, nombre],
   );
 
   return (

@@ -28,7 +28,10 @@ export type StaffSubRole =
   | 'observer'
   | 'coordinador';
 
-/** Pestañas posibles en la tab bar (4 por rol). "Inicio" = Eventos para todos. */
+/**
+ * Pestañas posibles en la tab bar. Perfil y Notificaciones NO van aquí:
+ * se abren desde el header (campana + avatar) en cualquier pantalla.
+ */
 export type TabKey =
   | 'inicio'
   | 'buscarOrg'
@@ -37,12 +40,15 @@ export type TabKey =
   | 'partidas'
   | 'tareas'
   | 'gestion'
-  | 'perfil';
+  | 'eventos'
+  | 'staff'
+  | 'equipos'
+  | 'usuarios';
 
 export interface TabConfig {
   key: TabKey;
   label: string;
-  /** Nombre de ícono (Tabler/Feather) — el lib de íconos se enlaza después. */
+  /** Nombre de ícono (Tabler) — el mapa a componente vive en AppTabs. */
   icon: string;
 }
 
@@ -51,22 +57,25 @@ export const TAB_DEFS: Record<TabKey, TabConfig> = {
   buscarOrg: { key: 'buscarOrg', label: 'Buscar org', icon: 'search' },
   miOrg: { key: 'miOrg', label: 'Mi org', icon: 'users' },
   invitaciones: { key: 'invitaciones', label: 'Invitaciones', icon: 'mail' },
-  partidas: { key: 'partidas', label: 'Partidas', icon: 'device-gamepad-2' },
+  partidas: { key: 'partidas', label: 'Partidas', icon: 'gamepad' },
   tareas: { key: 'tareas', label: 'Tareas', icon: 'checklist' },
-  gestion: { key: 'gestion', label: 'Gestión', icon: 'layout-dashboard' },
-  perfil: { key: 'perfil', label: 'Perfil', icon: 'user' },
+  gestion: { key: 'gestion', label: 'Gestión', icon: 'dashboard' },
+  eventos: { key: 'eventos', label: 'Eventos', icon: 'calendar' },
+  staff: { key: 'staff', label: 'Staff', icon: 'headset' },
+  equipos: { key: 'equipos', label: 'Equipos', icon: 'shield' },
+  usuarios: { key: 'usuarios', label: 'Usuarios', icon: 'users-group' },
 };
 
-/** Las 4 pestañas de cada rol (hoja "Tab bar por rol"). */
+/** Pestañas de cada rol (hoja "Tab bar por rol"). Super-admin ve todo. */
 export const TABS_BY_ROLE: Record<Role, TabKey[]> = {
-  visitante: ['inicio', 'buscarOrg', 'invitaciones', 'perfil'],
-  jugador: ['inicio', 'buscarOrg', 'invitaciones', 'perfil'],
-  capitan: ['inicio', 'miOrg', 'partidas', 'perfil'],
-  coach: ['inicio', 'miOrg', 'partidas', 'perfil'],
-  manager: ['inicio', 'miOrg', 'invitaciones', 'perfil'],
-  staff: ['inicio', 'partidas', 'tareas', 'perfil'],
-  admin: ['inicio', 'gestion', 'partidas', 'perfil'],
-  superadmin: ['inicio', 'gestion', 'partidas', 'perfil'],
+  visitante: ['inicio', 'buscarOrg', 'invitaciones'],
+  jugador: ['inicio', 'buscarOrg', 'invitaciones'],
+  capitan: ['inicio', 'miOrg', 'partidas'],
+  coach: ['inicio', 'miOrg', 'partidas'],
+  manager: ['inicio', 'miOrg', 'invitaciones'],
+  staff: ['inicio', 'partidas', 'tareas'],
+  admin: ['inicio', 'eventos', 'staff', 'equipos', 'usuarios'],
+  superadmin: ['inicio', 'eventos', 'staff', 'equipos', 'usuarios'],
 };
 
 export const ROLE_LABELS: Record<Role, string> = {

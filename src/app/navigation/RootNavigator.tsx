@@ -10,7 +10,7 @@ import {
 import { theme } from '@/design-system/theme';
 import { useSession } from '@/shared/auth/SessionContext';
 import { OnboardingNavigator } from './OnboardingNavigator';
-import { AppTabs } from './tabs/AppTabs';
+import { AppNavigator } from './AppNavigator';
 
 const navTheme: NavTheme = {
   ...DarkTheme,
@@ -28,7 +28,7 @@ export function RootNavigator() {
   const { isAuthenticated } = useSession();
   return (
     <NavigationContainer theme={navTheme}>
-      {isAuthenticated ? <AppTabs /> : <OnboardingNavigator />}
+      {isAuthenticated ? <AppNavigator /> : <OnboardingNavigator />}
     </NavigationContainer>
   );
 }
