@@ -132,12 +132,25 @@ const result = await authService.signIn({ email, password });
 
 ## 6. Estado de la app & datos demo
 
-**Hecho:** flujo completo de **Acceso & Onboarding** (Figma "00 / 00b"):
-Splash · Login (OB-02) · Crear cuenta (OB-03) · Completar perfil (OB-04) ·
-Verificar OTP teléfono (OB-05) · Recuperar contraseña (OB-06a→d).
+**Hecho:**
+- Flujo completo de **Acceso & Onboarding** (Figma "00 / 00b"):
+  Splash · Login (OB-02) · Crear cuenta (OB-03) · Completar perfil (OB-04) ·
+  Verificar OTP teléfono (OB-05) · Recuperar contraseña (OB-06a→d).
+- **Super-admin** (Figma "08 · Super-admin", sección 📱 App Móvil 390×844):
+  - **SA-M01 · Inicio** — dashboard: KPIs, tareas pendientes, actividad reciente.
+  - **SA-M05 · Notificaciones** — centro de alertas con filtros por categoría.
+  - **SA-M06 · Perfil** — avatar, datos de cuenta, configuración, cerrar sesión
+    (+ selector de rol DEMO para probar la navegación por rol).
+  - **SA-M02 · Eventos** — búsqueda + filtros FUNCIONALES, evento destacado,
+    próximos eventos, FAB, estado vacío.
+  - **Navbar por rol**: superadmin/admin ven Inicio · Eventos · Staff · Equipos ·
+    Usuarios. Perfil y Notificaciones se abren desde el header (campana + avatar),
+    NO son pestañas. Staff/Equipos/Usuarios son placeholder por ahora.
 
-**Sesión:** `SessionContext` guarda `isAuthenticated` y `role` en memoria
-(`signIn(role?)`, `signOut()`, `setRole()`).
+**Sesión:** `SessionContext` guarda `isAuthenticated`, `role`, `nombre`,
+`initials` en memoria (`signIn(role?)`, `signOut()`, `setRole()`).
+La tab bar sale del rol → para ver Super-admin entra con `gerson@eco5.mx`
+o cambia el rol en Perfil. Los botones sociales (Xbox/Discord) entran como jugador.
 
 **Credenciales demo** (en `shared/auth/mockUsers.ts`, contraseña `eco5demo`):
 
@@ -149,8 +162,25 @@ Verificar OTP teléfono (OB-05) · Recuperar contraseña (OB-06a→d).
 
 **Código OTP demo** (teléfono y recuperación): `529713` (en `services/config.ts`).
 
-**Siguiente:** maquetar las páginas internas de Figma (Super-admin, Eventos/Inicio,
-Mi org, Partidas…). Las features ya tienen carpeta y pantalla placeholder.
+**Servicios activos** (todos Mock; ver §5): `authService`, `dashboardService`,
+`notificationsService`, `eventsService`.
+
+### 👉 Dónde nos quedamos (retomar aquí)
+- **Siguiente pantalla a maquetar: SA-M03 · Staff** (luego SA-M04 · Equipos, luego
+  Usuarios). Solo la pantalla principal de cada una por ahora; los **flujos completos
+  de cada módulo van al final**.
+- Patrón a seguir (ya establecido): leer el nodo de Figma → reutilizar componentes
+  del design-system (SearchField, FilterPills, Tag, Fab, GameArt, Avatar,
+  HeaderActions, StatCard…) → datos vía un `*Service` POO nuevo en `services/` →
+  pantalla en su feature. Header FIJO, búsqueda/filtros funcionales, estado vacío.
+- **Figma**: usar **una sola** conexión a la vez (Desktop Bridge *o* MCP oficial,
+  nunca ambas — se tumban). Recomendado para design-to-code: **MCP oficial de Figma**
+  (`claude mcp add --scope user --transport http figma-desktop http://127.0.0.1:3845/mcp`),
+  da capturas confiables. El Desktop Bridge solo si hace falta EDITAR el archivo.
+- **Pendiente menor**: el arte de juego (banner "VALORANT/LOL") se genera con Views
+  (`GameArt`) porque no hay imágenes exportadas; si dan assets reales, integrarlos.
+- **Idea propuesta (no aplicada)**: dejar rol `superadmin` por defecto mientras se
+  maqueta este módulo, para no cambiar de rol cada vez. El usuario no confirmó.
 
 ---
 
