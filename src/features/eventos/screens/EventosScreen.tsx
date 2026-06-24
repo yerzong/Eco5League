@@ -41,6 +41,7 @@ import { eventsService, type LeagueEvent } from '@/services';
 import { filterEvents, type EventFilterKey } from '../eventFilters';
 import { CrearEventoModal } from './CrearEventoScreen';
 import { EditarEventoModal } from './EditarEventoScreen';
+import { EventoDetalleModal } from './EventoDetalleScreen';
 
 const FILTERS: FilterOption<EventFilterKey>[] = [
   { key: 'todos', label: 'Todos' },
@@ -135,6 +136,7 @@ export function EventosScreen() {
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [viewing, setViewing] = useState<LeagueEvent | null>(null);
   const [editing, setEditing] = useState<LeagueEvent | null>(null);
   const loading = useTabLoading();
 
@@ -214,7 +216,7 @@ export function EventosScreen() {
                   <Eyebrow label="// En curso" />
                   <View style={styles.cards}>
                     {enCurso.map(ev => (
-                      <EventCard key={ev.id} event={ev} onPress={() => setEditing(ev)} />
+                      <EventCard key={ev.id} event={ev} onPress={() => setViewing(ev)} />
                     ))}
                   </View>
                 </View>
@@ -225,7 +227,7 @@ export function EventosScreen() {
                   <Eyebrow label="// Próximos" />
                   <View style={styles.cards}>
                     {proximos.map(ev => (
-                      <EventCard key={ev.id} event={ev} onPress={() => setEditing(ev)} />
+                      <EventCard key={ev.id} event={ev} onPress={() => setViewing(ev)} />
                     ))}
                   </View>
                 </View>
@@ -237,11 +239,20 @@ export function EventosScreen() {
 
       <Fab style={styles.fab} onPress={() => setCreating(true)} />
       <CrearEventoModal visible={creating} onClose={() => setCreating(false)} />
+      <EventoDetalleModal
+        visible={!!viewing}
+        event={viewing}
+        onClose={() => setViewing(null)}
+        onEdit={() => setEditing(viewing)}
+      />
       <EditarEventoModal
         visible={!!editing}
         event={editing}
         onClose={() => setEditing(null)}
-        onDeleted={ev => setEvents(es => es.filter(e => e.id !== ev.id))}
+        onDeleted={ev => {
+          setEvents(es => es.filter(e => e.id !== ev.id));
+          setViewing(null);
+        }}
       />
 
       {filtersOpen ? (

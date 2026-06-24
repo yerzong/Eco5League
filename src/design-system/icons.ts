@@ -46,6 +46,7 @@ export {
   IconUpload,
   IconTrash,
   IconBan,
+  IconPencil,
   IconX,
   // Marcas de redes sociales
   IconBrandTiktok,
