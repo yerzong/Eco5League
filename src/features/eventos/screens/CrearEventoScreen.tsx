@@ -14,7 +14,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import type { Asset } from 'react-native-image-picker';
 import {
   Txt,
@@ -32,35 +32,21 @@ import {
 import { IconChevronLeft, IconCheck, IconEye, IconShare } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
+import {
+  TIPO_OPTS,
+  JUEGO_OPTS,
+  MODO_OPTS,
+  FORMATO_OPTS,
+  ROSTER_OPTS,
+  REGION_OPTS,
+  VISIBILITY_SEGMENTS,
+} from '../eventFormOptions';
 
 const STEPS = ['Identidad', 'Formato', 'Fechas'];
 const CAPTIONS = [
   'Paso 1 de 3 · Identidad',
   'Paso 2 de 3 · Formato & Roster',
   'Paso 3 de 3 · Fechas & publicación',
-];
-
-// Opciones de los selects (del documento de diseño).
-const TIPO_OPTS = ['Liga', 'Torneo', 'Copa', 'Relámpago'];
-const JUEGO_OPTS = ['Gears E-Day', 'Gears 5 — Versus', 'Otro (próximamente)'];
-const MODO_OPTS = ['1v1', '2v2', '4v4', '5v5'];
-const FORMATO_OPTS = [
-  'Eliminación simple',
-  'Eliminación doble',
-  'Grupos + Playoffs',
-  'Round robin',
-  'Suizo',
-];
-const ROSTER_OPTS = [
-  '4 titulares · 2 suplentes · 1 coach',
-  '5 titulares · 1 suplente',
-  '3 titulares · 1 suplente',
-];
-const REGION_OPTS = [
-  'México · Español',
-  'LATAM · Español',
-  'Norteamérica · Inglés',
-  'Global · Inglés',
 ];
 
 interface CrearEventoModalProps {
@@ -79,7 +65,7 @@ export function CrearEventoModal({ visible, onClose }: CrearEventoModalProps) {
   const [tipo, setTipo] = useState('Liga');
   const [juego, setJuego] = useState('Gears E-Day');
   const [modo, setModo] = useState('4v4');
-  const [formato, setFormato] = useState('Grupos + Playoffs');
+  const [formato, setFormato] = useState('Grupos + Playoffs (elim. doble)');
   const [roster, setRoster] = useState('4 titulares · 2 suplentes · 1 coach');
   const [region, setRegion] = useState('México · Español');
   // Numéricos
@@ -110,7 +96,8 @@ export function CrearEventoModal({ visible, onClose }: CrearEventoModalProps) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={back} statusBarTranslucent>
-      <View style={styles.root}>
+      <SafeAreaProvider>
+        <View style={styles.root}>
         {published ? (
           <SuccessView onClose={close} />
         ) : (
@@ -235,11 +222,7 @@ export function CrearEventoModal({ visible, onClose }: CrearEventoModalProps) {
                   </FormField>
                   <FormField label="VISIBILIDAD" required>
                     <SegmentedControl
-                      segments={[
-                        { key: 'publico', label: 'Público' },
-                        { key: 'privado', label: 'Privado' },
-                        { key: 'invitacion', label: 'Invitación' },
-                      ]}
+                      segments={VISIBILITY_SEGMENTS}
                       value={visibility}
                       onChange={setVisibility}
                     />
@@ -262,7 +245,8 @@ export function CrearEventoModal({ visible, onClose }: CrearEventoModalProps) {
             </SafeAreaView>
           </SafeAreaView>
         )}
-      </View>
+        </View>
+      </SafeAreaProvider>
     </Modal>
   );
 }

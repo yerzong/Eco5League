@@ -44,6 +44,8 @@ export {
   IconCheck,
   IconShare,
   IconUpload,
+  IconTrash,
+  IconBan,
   IconX,
   // Marcas de redes sociales
   IconBrandTiktok,

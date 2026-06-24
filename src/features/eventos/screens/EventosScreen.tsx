@@ -40,6 +40,7 @@ import {
 import { eventsService, type LeagueEvent } from '@/services';
 import { filterEvents, type EventFilterKey } from '../eventFilters';
 import { CrearEventoModal } from './CrearEventoScreen';
+import { EditarEventoModal } from './EditarEventoScreen';
 
 const FILTERS: FilterOption<EventFilterKey>[] = [
   { key: 'todos', label: 'Todos' },
@@ -134,6 +135,7 @@ export function EventosScreen() {
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<LeagueEvent | null>(null);
   const loading = useTabLoading();
 
   useEffect(() => {
@@ -212,7 +214,7 @@ export function EventosScreen() {
                   <Eyebrow label="// En curso" />
                   <View style={styles.cards}>
                     {enCurso.map(ev => (
-                      <EventCard key={ev.id} event={ev} />
+                      <EventCard key={ev.id} event={ev} onPress={() => setEditing(ev)} />
                     ))}
                   </View>
                 </View>
@@ -223,7 +225,7 @@ export function EventosScreen() {
                   <Eyebrow label="// Próximos" />
                   <View style={styles.cards}>
                     {proximos.map(ev => (
-                      <EventCard key={ev.id} event={ev} />
+                      <EventCard key={ev.id} event={ev} onPress={() => setEditing(ev)} />
                     ))}
                   </View>
                 </View>
@@ -235,6 +237,12 @@ export function EventosScreen() {
 
       <Fab style={styles.fab} onPress={() => setCreating(true)} />
       <CrearEventoModal visible={creating} onClose={() => setCreating(false)} />
+      <EditarEventoModal
+        visible={!!editing}
+        event={editing}
+        onClose={() => setEditing(null)}
+        onDeleted={ev => setEvents(es => es.filter(e => e.id !== ev.id))}
+      />
 
       {filtersOpen ? (
         <FilterSheet
@@ -265,10 +273,10 @@ export function EventosScreen() {
 }
 
 /** Card de evento: cover (logo + badge) + cuerpo (título, subtítulo, footer). */
-function EventCard({ event }: { event: LeagueEvent }) {
+function EventCard({ event, onPress }: { event: LeagueEvent; onPress?: () => void }) {
   const badge = statusColor(event.status);
   return (
-    <Pressable style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cover}>
         <GameArt
           label={event.game}
