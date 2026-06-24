@@ -20,9 +20,11 @@ import {
   FilterSheet,
   SortSheet,
   Fab,
+  SkeletonList,
   type FilterOption,
   type SortOption,
 } from '@/design-system/components';
+import { useTabLoading } from '@/shared/hooks/useTabLoading';
 import { IconUsers, IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
@@ -98,6 +100,7 @@ export function EquiposScreen() {
   const [sortDir, setSortDir] = useState<0 | 1>(0);
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const loading = useTabLoading();
 
   useEffect(() => {
     teamsService.getTeams().then(setTeams);
@@ -120,6 +123,8 @@ export function EquiposScreen() {
 
   const activos = filtered.filter(t => t.status === 'activo').length;
   const pendientes = filtered.length - activos;
+
+  if (loading) return <SkeletonList variant="team" />;
 
   return (
     <View style={styles.root}>

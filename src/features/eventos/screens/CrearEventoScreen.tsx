@@ -96,10 +96,14 @@ export function CrearEventoModal({ visible, onClose }: CrearEventoModalProps) {
   const [inicio, setInicio] = useState('01/02/2026');
   const [fin, setFin] = useState('30/03/2026');
 
+  // Cierra primero (deja que el Modal anime su salida con el contenido actual)
+  // y resetea el estado DESPUÉS de ocultarse, para no ver el formulario al salir.
   const close = () => {
-    setStep(0);
-    setPublished(false);
     onClose();
+    setTimeout(() => {
+      setStep(0);
+      setPublished(false);
+    }, 300);
   };
   const back = () => (step > 0 ? setStep(s => s - 1) : close());
   const next = () => (step < 2 ? setStep(s => s + 1) : setPublished(true));

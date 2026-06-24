@@ -21,9 +21,11 @@ import {
   StatusPill,
   GameArt,
   Fab,
+  SkeletonList,
   type FilterOption,
   type SortOption,
 } from '@/design-system/components';
+import { useTabLoading } from '@/shared/hooks/useTabLoading';
 import { IconChevronRight, IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
@@ -132,6 +134,7 @@ export function EventosScreen() {
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const loading = useTabLoading();
 
   useEffect(() => {
     eventsService.getEvents().then(setEvents);
@@ -159,6 +162,8 @@ export function EventosScreen() {
   const enCurso = filtered.filter(e => e.status === 'en_curso');
   const proximos = filtered.filter(e => e.status !== 'en_curso');
   const isEmpty = filtered.length === 0;
+
+  if (loading) return <SkeletonList variant="event" />;
 
   return (
     <View style={styles.root}>

@@ -18,6 +18,8 @@ export const palette = {
   borderStrong: '#3a3f4a',
   /** Borde sutil para superficies hundidas (Usuarios). */
   borderSubtle: '#262a31',
+  /** Bloque base de los skeletons de carga. */
+  skeleton: '#222630',
 
   // Marca
   brandRed: '#c8102e',

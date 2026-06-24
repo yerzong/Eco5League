@@ -140,7 +140,7 @@ export function AppTabs() {
     <Tab.Navigator
       key={role}
       screenOptions={{ headerShown: false, animation: 'shift' }}
-      tabBar={props => <AppTabBar {...props} />}>
+      tabBar={AppTabBar}>
       {tabKeys.map(key => (
         <Tab.Screen key={key} name={key} component={TAB_SCREENS[key]} />
       ))}

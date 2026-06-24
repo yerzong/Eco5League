@@ -63,7 +63,7 @@ export function FormSelect({
         <View
           style={[
             styles.menu,
-            { position: 'absolute', top: anchor.y + anchor.h + 8, left: anchor.x, width: anchor.w },
+            { top: anchor.y + anchor.h + 8, left: anchor.x, width: anchor.w },
           ]}>
           {options.map(opt => {
             const selected = opt === value;
@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
 
   // Menú flotante (overlay)
   menu: {
+    position: 'absolute',
     padding: 6,
     gap: 2,
     backgroundColor: theme.colors.surface1,

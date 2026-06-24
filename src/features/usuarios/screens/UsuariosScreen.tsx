@@ -18,9 +18,11 @@ import {
   FilterSheet,
   SortSheet,
   Avatar,
+  SkeletonList,
   type FilterOption,
   type SortOption,
 } from '@/design-system/components';
+import { useTabLoading } from '@/shared/hooks/useTabLoading';
 import { IconChevronRight, IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
@@ -106,6 +108,7 @@ export function UsuariosScreen() {
   const [sortDir, setSortDir] = useState<0 | 1>(0);
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const loading = useTabLoading();
 
   useEffect(() => {
     usersService.getUsers().then(setUsers);
@@ -127,6 +130,8 @@ export function UsuariosScreen() {
   }, [base, sortBy, sortDir]);
 
   const total = summary?.total ?? users.length;
+
+  if (loading) return <SkeletonList variant="user" />;
 
   return (
     <View style={styles.root}>

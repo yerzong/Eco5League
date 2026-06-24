@@ -21,9 +21,11 @@ import {
   FilterSheet,
   SortSheet,
   Fab,
+  SkeletonList,
   type FilterOption,
   type SortOption,
 } from '@/design-system/components';
+import { useTabLoading } from '@/shared/hooks/useTabLoading';
 import { IconCalendar, IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
@@ -105,6 +107,7 @@ export function StaffScreen() {
   const [sortDir, setSortDir] = useState<0 | 1>(0);
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const loading = useTabLoading();
 
   useEffect(() => {
     staffService.getStaff().then(setStaff);
@@ -126,6 +129,8 @@ export function StaffScreen() {
 
   const activos = filtered.filter(m => m.status === 'activo').length;
   const inactivos = filtered.length - activos;
+
+  if (loading) return <SkeletonList variant="staff" />;
 
   return (
     <View style={styles.root}>
