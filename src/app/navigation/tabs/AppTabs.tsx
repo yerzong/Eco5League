@@ -132,6 +132,10 @@ function AppTabBar({ state, navigation }: BottomTabBarProps) {
   );
 }
 
+/** Render estable de la tab bar (a nivel de módulo: se monta como componente
+ *  — hooks válidos — y no se recrea en cada render). */
+const renderTabBar = (props: BottomTabBarProps) => <AppTabBar {...props} />;
+
 export function AppTabs() {
   const { role } = useSession();
   const tabKeys = TABS_BY_ROLE[role];
@@ -140,7 +144,7 @@ export function AppTabs() {
     <Tab.Navigator
       key={role}
       screenOptions={{ headerShown: false, animation: 'shift' }}
-      tabBar={AppTabBar}>
+      tabBar={renderTabBar}>
       {tabKeys.map(key => (
         <Tab.Screen key={key} name={key} component={TAB_SCREENS[key]} />
       ))}
