@@ -11,6 +11,8 @@ interface SearchFieldProps {
   value?: string;
   onChangeText?: (t: string) => void;
   placeholder?: string;
+  /** Alto del campo (px). Default 48. */
+  height?: number;
   style?: ViewStyle;
 }
 
@@ -18,10 +20,11 @@ export function SearchField({
   value,
   onChangeText,
   placeholder = 'Buscar…',
+  height = 48,
   style,
 }: SearchFieldProps) {
   return (
-    <View style={[styles.box, style]}>
+    <View style={[styles.box, { height }, style]}>
       <IconSearch size={18} color={theme.colors.textTertiary} strokeWidth={1.9} />
       <TextInput
         value={value}
@@ -39,7 +42,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
-    height: 48,
     paddingHorizontal: theme.spacing.lg,
     backgroundColor: theme.colors.surface1,
     borderWidth: 1,

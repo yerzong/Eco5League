@@ -17,6 +17,10 @@ interface AvatarProps {
   size?: number;
   /** Color de acento (texto + tinte de fondo). Default rojo de marca. */
   color?: string;
+  /** Relleno sólido del color con iniciales blancas (en vez de tinte). */
+  solid?: boolean;
+  /** Fuente de las iniciales: 'heading' (Oswald, default) o 'body' (Inter). */
+  font?: 'heading' | 'body';
   style?: ViewStyle;
 }
 
@@ -25,15 +29,20 @@ export function Avatar({
   uri,
   size = 40,
   color = theme.colors.brandRed,
+  solid = false,
+  font = 'heading',
   style,
 }: AvatarProps) {
   const dim = { width: size, height: size, borderRadius: size / 2 };
   if (uri) {
     return <Image source={{ uri }} style={[dim, style as ImageStyle]} />;
   }
+  const bg = solid ? color : color + '2e';
+  const fg = solid ? theme.colors.white : color;
+  const fontFamily = font === 'body' ? theme.fonts.label : theme.fonts.headingBold;
   return (
-    <View style={[styles.wrap, dim, { backgroundColor: color + '2e' }, style]}>
-      <Txt style={[styles.initials, { color, fontSize: Math.round(size * 0.36) }]}>
+    <View style={[styles.wrap, dim, { backgroundColor: bg }, style]}>
+      <Txt style={[styles.initials, { fontFamily, color: fg, fontSize: Math.round(size * 0.32) }]}>
         {initials}
       </Txt>
     </View>

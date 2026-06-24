@@ -5,10 +5,10 @@
 export type EventStatus = 'en_curso' | 'inscripcion' | 'finalizado' | 'proximo';
 
 export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
-  en_curso: 'En curso',
-  inscripcion: 'Inscr.',
-  finalizado: 'Final.',
-  proximo: 'Próximo',
+  en_curso: 'EN CURSO',
+  inscripcion: 'Inscripciones',
+  finalizado: 'Finalizado',
+  proximo: 'Próximamente',
 };
 
 /** Formato de competencia de un evento. */

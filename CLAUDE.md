@@ -141,11 +141,33 @@ const result = await authService.signIn({ email, password });
   - **SA-M05 · Notificaciones** — centro de alertas con filtros por categoría.
   - **SA-M06 · Perfil** — avatar, datos de cuenta, configuración, cerrar sesión
     (+ selector de rol DEMO para probar la navegación por rol).
-  - **SA-M02 · Eventos** — búsqueda + filtros FUNCIONALES, evento destacado,
-    próximos eventos, FAB, estado vacío.
+  Las 4 listas (Eventos/Staff/Equipos/Usuarios) comparten el patrón rediseñado:
+  header fijo + búsqueda + **fila de controles** (`ControlsRow`: pill de orden
+  `SortControl` + botón `FiltersButton` con badge) + chips (`FilterPills`) +
+  **fila de conteo** (`CountRow`) + lista. Búsqueda, chips, **orden y filtros son
+  FUNCIONALES**:
+  - **Filtros** → `FilterSheet` (bottom sheet genérico): grupos de chips
+    multi-selección por entidad (Eventos: Estado/Tipo/Juego · Staff: Sub-rol/
+    Estado/Alcance · Equipos: Estado/Roster/Evento · Usuarios: Rol/Estado/Xbox),
+    "Limpiar" y CTA "VER N …". El badge del botón muestra nº de filtros activos.
+  - **Ordenar** → `SortSheet` (bottom sheet genérico): criterio (radios) +
+    dirección (`SegmentedControl`) + "APLICAR ORDEN".
+  - Lógica de filtrado pura y genérica en `shared/filters.ts` (`applyFilterGroups`,
+    `countSelected`, `toggleSelection`); cada pantalla declara sus `FILTER_GROUPS`
+    con predicados sobre sus datos.
+  - **SA-M02 · Eventos** (v2) — chips por estado (Todos/En curso/Inscripciones/
+    Finalizados), cards con cover (gradiente por acento + logo + badge), secciones
+    "En curso" / "Próximos", FAB.
+  - **SA-M03 · Staff** (v2) — chips por rol (Todos/Caster/Streamer/Moderador),
+    tarjetas con avatar coloreado, chips de rol, estado, alcance, "Gestionar".
+  - **SA-M04 · Equipos** (v2) — tarjetas con barra de acento por estado, escudo,
+    nombre+org, cupo, "Ver equipo".
+  - **USR · Usuarios** (v2) — mismo `ScreenHeader` que el resto (eyebrow + título +
+    total + campana/avatar), chips de rol redondeados, filas con avatar sólido,
+    badge de rol, @usuario, estado y fecha.
   - **Navbar por rol**: superadmin/admin ven Inicio · Eventos · Staff · Equipos ·
     Usuarios. Perfil y Notificaciones se abren desde el header (campana + avatar),
-    NO son pestañas. Staff/Equipos/Usuarios son placeholder por ahora.
+    NO son pestañas. **Todas las pestañas SA ya están maquetadas.**
 
 **Sesión:** `SessionContext` guarda `isAuthenticated`, `role`, `nombre`,
 `initials` en memoria (`signIn(role?)`, `signOut()`, `setRole()`).
@@ -163,16 +185,20 @@ o cambia el rol en Perfil. Los botones sociales (Xbox/Discord) entran como jugad
 **Código OTP demo** (teléfono y recuperación): `529713` (en `services/config.ts`).
 
 **Servicios activos** (todos Mock; ver §5): `authService`, `dashboardService`,
-`notificationsService`, `eventsService`.
+`notificationsService`, `eventsService`, `staffService`, `teamsService`,
+`usersService`.
 
 ### 👉 Dónde nos quedamos (retomar aquí)
-- **Siguiente pantalla a maquetar: SA-M03 · Staff** (luego SA-M04 · Equipos, luego
-  Usuarios). Solo la pantalla principal de cada una por ahora; los **flujos completos
-  de cada módulo van al final**.
+- **Siguiente: flujos completos de cada módulo** (detalle de evento/equipo/usuario,
+  alta/edición, gestionar staff). Las 4 listas SA ya están completas con búsqueda,
+  orden y filtros funcionales.
 - Patrón a seguir (ya establecido): leer el nodo de Figma → reutilizar componentes
-  del design-system (SearchField, FilterPills, Tag, Fab, GameArt, Avatar,
-  HeaderActions, StatCard…) → datos vía un `*Service` POO nuevo en `services/` →
-  pantalla en su feature. Header FIJO, búsqueda/filtros funcionales, estado vacío.
+  del design-system (`ScreenHeader`, `SearchField`, `ControlsRow`, `SortControl`,
+  `FiltersButton`, `CountRow`, `FilterPills`, `FilterSheet`, `SortSheet`,
+  `FilterChip`, `SegmentedControl`, `GradientButton`, `StatusPill`, `ActionLink`,
+  `Avatar`, `Fab`, `GameArt`, `BottomSheet`…) → datos vía un `*Service` POO en
+  `services/` + filtros puros (`shared/filters.ts`) en la feature → pantalla en su
+  feature. Header FIJO, controles funcionales, estado vacío.
 - **Figma**: usar **una sola** conexión a la vez (Desktop Bridge *o* MCP oficial,
   nunca ambas — se tumban). Recomendado para design-to-code: **MCP oficial de Figma**
   (`claude mcp add --scope user --transport http figma-desktop http://127.0.0.1:3845/mcp`),

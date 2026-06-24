@@ -30,9 +30,16 @@ function toInitials(name: string): string {
     .join('');
 }
 
+/**
+ * DEV: arranca con sesión iniciada para saltar el onboarding durante el
+ * maquetado. Pon `false` para volver a exigir login.
+ */
+const DEV_AUTOLOGIN = true;
+const DEV_ROLE: Role = 'superadmin';
+
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState<Role>('jugador');
+  const [isAuthenticated, setIsAuthenticated] = useState(DEV_AUTOLOGIN);
+  const [role, setRole] = useState<Role>(DEV_AUTOLOGIN ? DEV_ROLE : 'jugador');
   const [nombre] = useState('Gerson García');
 
   const value = useMemo<SessionState>(

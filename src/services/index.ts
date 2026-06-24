@@ -21,6 +21,12 @@ import type { NotificationsService } from './notifications/types';
 import { MockNotificationsService } from './notifications/MockNotificationsService';
 import type { EventsService } from './events/types';
 import { MockEventsService } from './events/MockEventsService';
+import type { StaffService } from './staff/types';
+import { MockStaffService } from './staff/MockStaffService';
+import type { TeamsService } from './teams/types';
+import { MockTeamsService } from './teams/MockTeamsService';
+import type { UsersService } from './users/types';
+import { MockUsersService } from './users/MockUsersService';
 
 /** Cliente HTTP compartido. El token de sesión se inyectará al integrar auth real. */
 export const apiClient = new ApiClient(config.apiBaseUrl);
@@ -37,6 +43,9 @@ export const authService: AuthService = config.useMockServices
 export const dashboardService: DashboardService = new MockDashboardService();
 export const notificationsService: NotificationsService = new MockNotificationsService();
 export const eventsService: EventsService = new MockEventsService();
+export const staffService: StaffService = new MockStaffService();
+export const teamsService: TeamsService = new MockTeamsService();
+export const usersService: UsersService = new MockUsersService();
 
 export { ApiClient } from './http/ApiClient';
 export { ApiError } from './http/ApiError';
@@ -55,3 +64,6 @@ export type {
 } from './dashboard/types';
 export type { NotificationsService, NotificationItem } from './notifications/types';
 export type { EventsService, LeagueEvent } from './events/types';
+export type { StaffService, StaffMember, StaffRole, StaffStatus } from './staff/types';
+export type { TeamsService, Team, TeamStatus } from './teams/types';
+export type { UsersService, AppUser, UserStatus, UsersSummary } from './users/types';

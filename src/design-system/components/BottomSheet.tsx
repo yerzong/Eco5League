@@ -27,8 +27,10 @@ import { Txt } from './Txt';
 const DRAG_CLOSE_THRESHOLD = 120;
 
 interface BottomSheetProps {
-  title: string;
+  title?: string;
   subtitle?: string;
+  /** Header personalizado (reemplaza la barra+título+✕ por defecto). */
+  header?: React.ReactNode;
   /** Se llama DESPUÉS de la animación de salida. */
   onClose: () => void;
   children: React.ReactNode;
@@ -40,7 +42,7 @@ export interface BottomSheetHandle {
 }
 
 export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
-  function BottomSheet({ title, subtitle, onClose, children }, ref) {
+  function BottomSheet({ title, subtitle, header, onClose, children }, ref) {
   const { height: SCREEN_H } = useWindowDimensions();
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
   const scrim = useRef(new Animated.Value(0)).current;
@@ -91,20 +93,26 @@ export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
           {/* Zona de arrastre: asa + encabezado */}
           <View {...pan.panHandlers}>
             <View style={styles.handle} />
-            <View style={styles.headerRow}>
-              <View style={styles.titleRow}>
-                <View style={styles.bar} />
-                <Txt variant="h2">{title}</Txt>
-              </View>
-              <Pressable onPress={close} hitSlop={12}>
-                <IconX size={20} color={theme.colors.textSecondary} strokeWidth={2} />
-              </Pressable>
-            </View>
-            {subtitle ? (
-              <Txt variant="bodySm" color="textSecondary" style={styles.subtitle}>
-                {subtitle}
-              </Txt>
-            ) : null}
+            {header ? (
+              header
+            ) : (
+              <>
+                <View style={styles.headerRow}>
+                  <View style={styles.titleRow}>
+                    <View style={styles.bar} />
+                    <Txt variant="h2">{title}</Txt>
+                  </View>
+                  <Pressable onPress={close} hitSlop={12}>
+                    <IconX size={20} color={theme.colors.textSecondary} strokeWidth={2} />
+                  </Pressable>
+                </View>
+                {subtitle ? (
+                  <Txt variant="bodySm" color="textSecondary" style={styles.subtitle}>
+                    {subtitle}
+                  </Txt>
+                ) : null}
+              </>
+            )}
           </View>
 
           <SafeAreaView edges={['bottom']}>

@@ -15,15 +15,15 @@ export interface LeagueEvent {
   status: EventStatus;
   /** Formato de competencia (para filtrar). */
   format: EventFormat;
-  /** Marca el evento que se muestra como "destacado". */
-  featured?: boolean;
-  /** Texto de equipos (ej. "16/16 equipos"). Opcional en filas. */
+  /** Color de acento del cover (gradiente + shard). Default rojo de marca. */
+  accent?: string;
+  /** Texto de equipos del footer (ej. "16/16 equipos"). */
   teamsLabel?: string;
-  /** Rango de fechas (ej. "01 feb – 30 mar 2026"). Opcional. */
+  /** Meta del footer-derecho (ej. "01 feb – 30 mar", "Cierra 25 jun"). */
   dateLabel?: string;
 }
 
 export interface EventsService {
-  /** Lista completa de eventos (el destacado va marcado con `featured`). */
+  /** Lista completa de eventos (las cards "en curso" se resaltan en la UI). */
   getEvents(): Promise<LeagueEvent[]>;
 }

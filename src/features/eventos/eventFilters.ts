@@ -1,14 +1,13 @@
 /**
- * Lógica de búsqueda y filtrado de eventos — función pura, sin UI.
- * Separada de la pantalla para mantenerla simple y poder probarla aparte.
+ * Búsqueda y filtrado de eventos — función pura, sin UI.
+ * El filtro v2 es por estado (Todos / En curso / Inscripciones / Finalizados).
  */
 import type { LeagueEvent } from '@/services';
-import type { EventFormat } from '@/shared/events/status';
+import type { EventStatus } from '@/shared/events/status';
 
-/** Filtro activo: todos, un formato (liga/torneo/copa) o "en curso". */
-export type EventFilterKey = 'todos' | EventFormat | 'en_curso';
+/** Filtro activo por estado. */
+export type EventFilterKey = 'todos' | 'en_curso' | 'inscripcion' | 'finalizado';
 
-/** Aplica búsqueda de texto + filtro a la lista de eventos. */
 export function filterEvents(
   events: LeagueEvent[],
   search: string,
@@ -23,11 +22,7 @@ export function filterEvents(
       e.subtitle.toLowerCase().includes(q);
 
     const matchesFilter =
-      filter === 'todos'
-        ? true
-        : filter === 'en_curso'
-          ? e.status === 'en_curso'
-          : e.format === filter;
+      filter === 'todos' || e.status === (filter as EventStatus);
 
     return matchesSearch && matchesFilter;
   });

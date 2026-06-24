@@ -1,9 +1,7 @@
 /**
- * SA-M02 · Eventos (gestión) — fiel al diseño de Figma.
- * Búsqueda + filtros (funcionales) + evento destacado + próximos eventos + FAB.
- *
- * Vista por defecto (sin búsqueda ni filtro): destacado + próximos.
- * Al buscar o filtrar: una sola lista filtrada (con estado vacío si no hay).
+ * SA-M02 · Eventos (gestión) — v2 redISeñado, fiel a Figma.
+ * Header fijo + búsqueda + fila de controles (orden + filtros) + chips por
+ * estado + fila de conteo + secciones "En curso" / "Próximos" con cards.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -12,32 +10,91 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Txt,
   GlowBackground,
+  ScreenHeader,
   Eyebrow,
-  HeaderActions,
   SearchField,
+  ControlsRow,
+  CountRow,
   FilterPills,
-  Tag,
-  Fab,
+  FilterSheet,
+  SortSheet,
+  StatusPill,
   GameArt,
+  Fab,
   type FilterOption,
+  type SortOption,
 } from '@/design-system/components';
 import { IconChevronRight, IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/events/status';
+import {
+  applyFilterGroups,
+  countSelected,
+  type FilterGroupDef,
+  type FilterSelection,
+} from '@/shared/filters';
 import { eventsService, type LeagueEvent } from '@/services';
 import { filterEvents, type EventFilterKey } from '../eventFilters';
+import { CrearEventoModal } from './CrearEventoScreen';
 
 const FILTERS: FilterOption<EventFilterKey>[] = [
   { key: 'todos', label: 'Todos' },
-  { key: 'liga', label: 'Liga' },
-  { key: 'torneo', label: 'Torneo' },
-  { key: 'copa', label: 'Copa' },
   { key: 'en_curso', label: 'En curso' },
+  { key: 'inscripcion', label: 'Inscripciones' },
+  { key: 'finalizado', label: 'Finalizados' },
 ];
 
-/** Color de marca para cada estado de evento. */
+/** Grupos del panel de Filtros (con predicados de datos). */
+const FILTER_GROUPS: FilterGroupDef<LeagueEvent>[] = [
+  {
+    key: 'estado',
+    label: 'ESTADO',
+    options: [
+      { key: 'borrador', label: 'Borrador', test: () => false },
+      { key: 'insc_open', label: 'Inscripciones abiertas', test: e => e.status === 'inscripcion' },
+      { key: 'insc_closed', label: 'Inscripciones cerradas', test: () => false },
+      { key: 'en_curso', label: 'En curso', test: e => e.status === 'en_curso' },
+      { key: 'finalizado', label: 'Finalizado', test: e => e.status === 'finalizado' },
+      { key: 'cancelado', label: 'Cancelado', test: () => false },
+    ],
+  },
+  {
+    key: 'tipo',
+    label: 'TIPO',
+    options: [
+      { key: 'liga', label: 'Liga', test: e => e.format === 'liga' },
+      { key: 'torneo', label: 'Torneo', test: e => e.format === 'torneo' },
+      { key: 'copa', label: 'Copa', test: e => e.format === 'copa' },
+    ],
+  },
+  {
+    key: 'juego',
+    label: 'JUEGO',
+    options: [
+      { key: 'valorant', label: 'Valorant', test: e => e.game.toUpperCase().startsWith('VAL') },
+      { key: 'lol', label: 'League of Legends', test: e => e.game.toUpperCase() === 'LOL' },
+      { key: 'gears', label: 'Gears', test: e => e.game.toUpperCase() === 'GEARS' },
+      {
+        key: 'otros',
+        label: 'Otros',
+        test: e => !['VALORANT', 'VAL', 'LOL', 'GEARS'].includes(e.game.toUpperCase()),
+      },
+    ],
+  },
+];
+
+const SORT_OPTIONS: SortOption[] = [
+  { key: 'fecha', label: 'Fecha de inicio' },
+  { key: 'nombre', label: 'Nombre' },
+  { key: 'estado', label: 'Estado' },
+  { key: 'equipos', label: 'Nº de equipos' },
+];
+const SORT_DIRECTIONS: [string, string] = ['↓ Recientes primero', '↑ Antiguos primero'];
+const SORT_PILL_DIR: [string, string] = ['Recientes', 'Antiguos'];
+
+/** Color del badge de estado (dot + texto). */
 function statusColor(status: EventStatus): string {
   switch (status) {
     case 'en_curso':
@@ -47,7 +104,19 @@ function statusColor(status: EventStatus): string {
     case 'finalizado':
       return theme.colors.textTertiary;
     default:
-      return theme.colors.brandRed;
+      return theme.colors.textSecondary;
+  }
+}
+
+/** Color del texto de equipos del footer (solo "en curso" se resalta). */
+function teamsColor(status: EventStatus): string {
+  switch (status) {
+    case 'en_curso':
+      return theme.colors.accentGreen;
+    case 'finalizado':
+      return theme.colors.textTertiary;
+    default:
+      return theme.colors.textSecondary;
   }
 }
 
@@ -57,83 +126,71 @@ export function EventosScreen() {
   const [events, setEvents] = useState<LeagueEvent[]>([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<EventFilterKey>('todos');
+  const [advanced, setAdvanced] = useState<FilterSelection>({});
+  const [sortBy, setSortBy] = useState('fecha');
+  const [sortDir, setSortDir] = useState<0 | 1>(0);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     eventsService.getEvents().then(setEvents);
   }, []);
 
-  // Vista por defecto = sin búsqueda ni filtro: muestra destacado + próximos.
-  const isDefaultView = filter === 'todos' && !search.trim();
-  const filtered = useMemo(
+  // Búsqueda + chips rápidos (sin filtros avanzados) → base para el contador.
+  const quick = useMemo(
     () => filterEvents(events, search, filter),
     [events, search, filter],
   );
-  const featured = events.find(e => e.featured);
-  const upcoming = events.filter(e => !e.featured);
+  // + filtros avanzados (sheet).
+  const base = useMemo(
+    () => applyFilterGroups(quick, FILTER_GROUPS, advanced),
+    [quick, advanced],
+  );
+
+  const filtered = useMemo(() => {
+    const list =
+      sortBy === 'nombre'
+        ? [...base].sort((a, b) => a.title.localeCompare(b.title))
+        : base;
+    return sortDir === 1 ? [...list].reverse() : list;
+  }, [base, sortBy, sortDir]);
+
+  const enCurso = filtered.filter(e => e.status === 'en_curso');
+  const proximos = filtered.filter(e => e.status !== 'en_curso');
+  const isEmpty = filtered.length === 0;
 
   return (
     <View style={styles.root}>
       <GlowBackground size={440} centerY={0.02} />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        {/* Header fijo */}
-        <View style={styles.header}>
-          <View style={styles.flex}>
-            <Eyebrow label="// Gestión de eventos" />
-            <Txt style={styles.title}>Eventos</Txt>
-          </View>
-          <HeaderActions
-            initials={initials}
-            onNotifications={() => navigation.navigate('Notificaciones')}
-            onProfile={() => navigation.navigate('Perfil')}
-          />
-        </View>
+        <ScreenHeader
+          eyebrow="// Gestión de eventos"
+          title="Eventos"
+          initials={initials}
+          onNotifications={() => navigation.navigate('Notificaciones')}
+          onProfile={() => navigation.navigate('Perfil')}
+        />
 
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <SearchField
-            placeholder="Buscar evento..."
-            value={search}
-            onChangeText={setSearch}
+          <SearchField placeholder="Buscar evento..." value={search} onChangeText={setSearch} height={52} />
+          <ControlsRow
+            sortLabel={SORT_OPTIONS.find(o => o.key === sortBy)?.label ?? 'Fecha de inicio'}
+            sortValue={SORT_PILL_DIR[sortDir]}
+            onSort={() => setSortOpen(true)}
+            filtersCount={countSelected(advanced)}
+            onFilters={() => setFiltersOpen(true)}
           />
-          <View style={styles.filters}>
-            <FilterPills options={FILTERS} value={filter} onChange={setFilter} />
-          </View>
+          <FilterPills options={FILTERS} value={filter} onChange={setFilter} round />
+          <CountRow
+            left={`${filtered.length} eventos`}
+            right={`${enCurso.length} en curso · ${proximos.length} próximos`}
+          />
 
-          {isDefaultView ? (
-            <>
-              {/* Evento destacado */}
-              {featured ? (
-                <>
-                  <Eyebrow label="// Evento destacado" />
-                  <FeaturedCard event={featured} style={styles.afterEyebrow} />
-                </>
-              ) : null}
-
-              {/* Próximos eventos */}
-              <View style={styles.sectionGap}>
-                <Eyebrow label="// Próximos eventos" />
-              </View>
-              <View style={styles.rows}>
-                {upcoming.map(ev => (
-                  <EventRow key={ev.id} event={ev} />
-                ))}
-              </View>
-            </>
-          ) : filtered.length > 0 ? (
-            /* Resultado de búsqueda / filtro */
-            <View style={styles.rows}>
-              <Txt variant="caption" color="textTertiary" style={styles.resultCount}>
-                {filtered.length}{' '}
-                {filtered.length === 1 ? 'resultado' : 'resultados'}
-              </Txt>
-              {filtered.map(ev => (
-                <EventRow key={ev.id} event={ev} />
-              ))}
-            </View>
-          ) : (
-            /* Estado vacío */
+          {isEmpty ? (
             <View style={styles.empty}>
               <IconSearch size={32} color={theme.colors.textTertiary} strokeWidth={1.5} />
               <Txt variant="bodyMedium" color="textSecondary" style={styles.emptyTitle}>
@@ -143,211 +200,181 @@ export function EventosScreen() {
                 Prueba con otro término o cambia el filtro.
               </Txt>
             </View>
+          ) : (
+            <>
+              {enCurso.length > 0 ? (
+                <View style={styles.section}>
+                  <Eyebrow label="// En curso" />
+                  <View style={styles.cards}>
+                    {enCurso.map(ev => (
+                      <EventCard key={ev.id} event={ev} />
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+
+              {proximos.length > 0 ? (
+                <View style={styles.section}>
+                  <Eyebrow label="// Próximos" />
+                  <View style={styles.cards}>
+                    {proximos.map(ev => (
+                      <EventCard key={ev.id} event={ev} />
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+            </>
           )}
         </ScrollView>
       </SafeAreaView>
 
-      <Fab style={styles.fab} onPress={() => {}} />
+      <Fab style={styles.fab} onPress={() => setCreating(true)} />
+      <CrearEventoModal visible={creating} onClose={() => setCreating(false)} />
+
+      {filtersOpen ? (
+        <FilterSheet
+          groups={FILTER_GROUPS}
+          initial={advanced}
+          itemNoun="EVENTOS"
+          computeCount={sel => applyFilterGroups(quick, FILTER_GROUPS, sel).length}
+          onApply={setAdvanced}
+          onClose={() => setFiltersOpen(false)}
+        />
+      ) : null}
+
+      {sortOpen ? (
+        <SortSheet
+          options={SORT_OPTIONS}
+          directions={SORT_DIRECTIONS}
+          initialCriteria={sortBy}
+          initialDir={sortDir}
+          onApply={(c, d) => {
+            setSortBy(c);
+            setSortDir(d);
+          }}
+          onClose={() => setSortOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }
 
-/** Tarjeta del evento destacado: banner con título overlay + franja inferior. */
-function FeaturedCard({ event, style }: { event: LeagueEvent; style?: any }) {
-  const color = statusColor(event.status);
+/** Card de evento: cover (logo + badge) + cuerpo (título, subtítulo, footer). */
+function EventCard({ event }: { event: LeagueEvent }) {
+  const badge = statusColor(event.status);
   return (
-    <View style={[styles.featured, style]}>
-      {/* Banner con overlays */}
-      <View style={styles.banner}>
+    <Pressable style={styles.card}>
+      <View style={styles.cover}>
         <GameArt
           label={event.game}
-          accent={theme.colors.brandRed}
-          height={132}
+          accent={event.accent}
+          height={120}
           radius={0}
-          style={styles.bannerArt}
+          scrim
+          style={StyleSheet.absoluteFill}
         />
-        {/* Degradado inferior para legibilidad del título */}
-        <View style={styles.bannerScrim} pointerEvents="none" />
-        {/* Código (arriba-izq) */}
-        <View style={styles.codeBadge}>
-          <Txt style={styles.codeText}>{event.code}</Txt>
-        </View>
-        {/* Estado (arriba-der) */}
-        <View style={[styles.statusPill, { backgroundColor: color }]}>
-          <Txt style={styles.statusText}>
-            {EVENT_STATUS_LABELS[event.status].toUpperCase()}
-          </Txt>
-        </View>
-        {/* Título + subtítulo (abajo, sobre el banner) */}
-        <View style={styles.bannerText}>
-          <Txt style={styles.featuredTitle}>{event.title}</Txt>
-          <Txt variant="caption" color="textSecondary">
-            {event.subtitle}
-          </Txt>
+        <View style={styles.coverTop}>
+          <View style={styles.logo}>
+            <Txt style={styles.logoText}>{event.code}</Txt>
+          </View>
+          <StatusPill label={EVENT_STATUS_LABELS[event.status]} color={badge} dot round />
         </View>
       </View>
 
-      {/* Franja inferior: equipos/fecha + Ver detalle */}
-      <View style={styles.featuredFooter}>
-        <View style={styles.flex}>
-          {event.teamsLabel ? (
-            <View style={styles.teamsRow}>
-              <View style={[styles.dot, { backgroundColor: color }]} />
-              <Txt style={[styles.teamsText, { color }]}>{event.teamsLabel}</Txt>
-            </View>
-          ) : null}
-          {event.dateLabel ? (
-            <Txt variant="caption" color="textTertiary" style={styles.dateText}>
-              {event.dateLabel}
-            </Txt>
-          ) : null}
-        </View>
-        <Pressable style={styles.detailBtn}>
-          <Txt style={styles.detailText}>Ver detalle</Txt>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-/** Fila de un evento (miniatura + datos + estado + chevron). */
-function EventRow({ event }: { event: LeagueEvent }) {
-  const color = statusColor(event.status);
-  return (
-    <Pressable style={styles.row}>
-      <GameArt
-        label={event.game}
-        accent={color}
-        height={62}
-        fontSize={20}
-        radius={theme.radius.sm}
-        style={styles.thumb}
-      />
-      <View style={styles.rowBody}>
-        <Txt variant="bodyMedium" color="textPrimary" numberOfLines={1}>
+      <View style={styles.body}>
+        <Txt style={styles.cardTitle} numberOfLines={1}>
           {event.title}
         </Txt>
-        <Txt variant="caption" color="textTertiary" numberOfLines={1}>
+        <Txt style={styles.cardSubtitle} numberOfLines={1}>
           {event.subtitle}
         </Txt>
+        <View style={styles.divider} />
+        <View style={styles.footer}>
+          {event.teamsLabel ? (
+            <View style={styles.teams}>
+              <View style={[styles.teamsDot, { backgroundColor: teamsColor(event.status) }]} />
+              <Txt style={[styles.teamsText, { color: teamsColor(event.status) }]}>
+                {event.teamsLabel}
+              </Txt>
+            </View>
+          ) : (
+            <View />
+          )}
+          <View style={styles.footRight}>
+            {event.dateLabel ? <Txt style={styles.footMeta}>{event.dateLabel}</Txt> : null}
+            <IconChevronRight size={18} color={theme.colors.textTertiary} strokeWidth={2} />
+          </View>
+        </View>
       </View>
-      <Tag label={EVENT_STATUS_LABELS[event.status]} color={color} uppercase={false} />
-      <IconChevronRight size={18} color={theme.colors.textTertiary} strokeWidth={2} />
     </Pressable>
   );
 }
 
+const CARD_RADIUS = 12;
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.bgOuter },
   safe: { flex: 1 },
-  flex: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing['2xl'],
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.md,
-  },
-  title: {
-    fontFamily: fonts.headingBold,
-    fontSize: 32,
-    lineHeight: 40,
-    color: theme.colors.textPrimary,
-    marginTop: theme.spacing.xs,
-  },
   content: {
     paddingHorizontal: theme.spacing['2xl'],
     paddingTop: theme.spacing.sm,
     paddingBottom: 120,
+    gap: theme.spacing.lg,
   },
-  filters: { marginTop: theme.spacing.md, marginBottom: theme.spacing.xl },
-  afterEyebrow: { marginTop: theme.spacing.md },
-  sectionGap: { marginTop: theme.spacing.xl },
-  rows: { gap: theme.spacing.md, marginTop: theme.spacing.md },
-  resultCount: { marginBottom: theme.spacing.xs },
-  // Featured
-  featured: {
+  section: { gap: theme.spacing.md },
+  cards: { gap: theme.spacing.lg },
+
+  // Card
+  card: {
     backgroundColor: theme.colors.surface1,
-    borderRadius: theme.radius.md,
+    borderRadius: CARD_RADIUS,
     borderWidth: 1,
     borderColor: theme.colors.borderDefault,
     overflow: 'hidden',
   },
-  banner: { height: 132 },
-  bannerArt: { position: 'absolute', top: 0, left: 0, right: 0 },
-  bannerScrim: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 86,
-    backgroundColor: '#08090bd9',
-  },
-  codeBadge: {
+  cover: { height: 120 },
+  coverTop: {
     position: 'absolute',
     top: theme.spacing.md,
     left: theme.spacing.md,
+    right: theme.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  logo: {
     width: 44,
     height: 44,
-    borderRadius: theme.radius.md,
+    borderRadius: 8,
     backgroundColor: '#0c0c10d9',
     borderWidth: 1,
     borderColor: theme.colors.borderDefault,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  codeText: { fontFamily: fonts.headingBold, fontSize: 16, color: theme.colors.textPrimary },
-  statusPill: {
-    position: 'absolute',
-    top: theme.spacing.md,
-    right: theme.spacing.md,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 4,
-    borderRadius: theme.radius.sm,
+  logoText: { fontFamily: fonts.headingBold, fontSize: 16, color: theme.colors.textPrimary },
+
+  body: { padding: theme.spacing.lg, gap: theme.spacing.md },
+  cardTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: 0.2,
+    color: theme.colors.textPrimary,
   },
-  statusText: { fontFamily: fonts.label, fontSize: 11, color: theme.colors.white, letterSpacing: 0.5 },
-  bannerText: {
-    position: 'absolute',
-    left: theme.spacing.lg,
-    right: theme.spacing.lg,
-    bottom: theme.spacing.md,
-    gap: 2,
-  },
-  featuredTitle: { fontFamily: fonts.headingBold, fontSize: 24, lineHeight: 30, color: theme.colors.textPrimary },
-  featuredFooter: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-  },
-  teamsRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  cardSubtitle: { fontFamily: fonts.body, fontSize: 13, lineHeight: 17, color: theme.colors.textSecondary },
+  divider: { height: 1, backgroundColor: theme.colors.borderDefault },
+  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  teams: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  teamsDot: { width: 8, height: 8, borderRadius: 4 },
   teamsText: { fontFamily: fonts.label, fontSize: 13 },
-  dateText: { marginTop: 4 },
-  detailBtn: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.brandRed,
-    borderRadius: theme.radius.sm,
-  },
-  detailText: { fontFamily: fonts.button, fontSize: 12, color: theme.colors.white },
-  // Row
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-    backgroundColor: theme.colors.surface1,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.sm,
-    paddingRight: theme.spacing.md,
-  },
-  thumb: { width: 64 },
-  rowBody: { flex: 1, gap: 2 },
-  // Empty state
+  footRight: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
+  footMeta: { fontFamily: fonts.body, fontSize: 12, color: theme.colors.textTertiary },
+
+  // Estado vacío
   empty: { alignItems: 'center', paddingVertical: theme.spacing['4xl'], gap: theme.spacing.sm },
   emptyTitle: { marginTop: theme.spacing.sm },
   emptyText: { textAlign: 'center' },
-  // FAB
+
   fab: { position: 'absolute', right: theme.spacing['2xl'], bottom: theme.spacing['2xl'] },
 });

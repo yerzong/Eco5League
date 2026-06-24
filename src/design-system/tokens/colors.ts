@@ -10,10 +10,14 @@ export const palette = {
   bgBase: '#0e0f12',
   surface1: '#16181d',
   surface2: '#1c1f26',
+  /** Superficie hundida para listas densas (cards de Usuarios). */
+  surfaceSunken: '#121419',
 
   // Bordes
   borderDefault: '#2a2e37',
   borderStrong: '#3a3f4a',
+  /** Borde sutil para superficies hundidas (Usuarios). */
+  borderSubtle: '#262a31',
 
   // Marca
   brandRed: '#c8102e',
