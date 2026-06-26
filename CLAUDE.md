@@ -189,24 +189,36 @@ o cambia el rol en Perfil. Los botones sociales (Xbox/Discord) entran como jugad
 `usersService`.
 
 ### 👉 Dónde nos quedamos (retomar aquí)
-- **Siguiente: flujos completos de cada módulo** (detalle de evento/equipo/usuario,
-  alta/edición, gestionar staff). Las 4 listas SA ya están completas con búsqueda,
-  orden y filtros funcionales.
-- Patrón a seguir (ya establecido): leer el nodo de Figma → reutilizar componentes
-  del design-system (`ScreenHeader`, `SearchField`, `ControlsRow`, `SortControl`,
-  `FiltersButton`, `CountRow`, `FilterPills`, `FilterSheet`, `SortSheet`,
-  `FilterChip`, `SegmentedControl`, `GradientButton`, `StatusPill`, `ActionLink`,
-  `Avatar`, `Fab`, `GameArt`, `BottomSheet`…) → datos vía un `*Service` POO en
-  `services/` + filtros puros (`shared/filters.ts`) en la feature → pantalla en su
-  feature. Header FIJO, controles funcionales, estado vacío.
-- **Figma**: usar **una sola** conexión a la vez (Desktop Bridge *o* MCP oficial,
-  nunca ambas — se tumban). Recomendado para design-to-code: **MCP oficial de Figma**
-  (`claude mcp add --scope user --transport http figma-desktop http://127.0.0.1:3845/mcp`),
-  da capturas confiables. El Desktop Bridge solo si hace falta EDITAR el archivo.
-- **Pendiente menor**: el arte de juego (banner "VALORANT/LOL") se genera con Views
-  (`GameArt`) porque no hay imágenes exportadas; si dan assets reales, integrarlos.
-- **Idea propuesta (no aplicada)**: dejar rol `superadmin` por defecto mientras se
-  maqueta este módulo, para no cambiar de rol cada vez. El usuario no confirmó.
+- **Módulo Eventos: COMPLETO** — listado v2, **Crear evento** (wizard 3 pasos +
+  éxito animado, subida real de imagen y PDF), **Ver evento** (detalle con 5 tabs:
+  Resumen/Equipos/Staff/Brackets/Partidos) y **Editar/Eliminar evento**. La card
+  abre Ver evento; desde ahí "Editar" abre el form de edición.
+- **Estados de carga (skeletons)**: `SkeletonList` + `useTabLoading(1s)` en las 4
+  listas SA. **Tab bar animada** (indicador deslizante + transición `shift`).
+- **DEV autologin** como `superadmin` activado en `SessionContext.tsx`
+  (`DEV_AUTOLOGIN = true`); ponlo en `false` para volver a exigir login.
+- **Siguiente sugerido**: EV-08/EV-09 (equipos del evento / remover equipo), o
+  replicar los flujos (ver/crear/editar) en Staff · Equipos · Usuarios. Patrón:
+  leer nodo Figma → reutilizar design-system → datos vía `*Service` POO + filtros
+  puros (`shared/filters.ts`) → pantalla en su feature.
+- **Componentes genéricos clave** (design-system): `ScreenHeader`, `SearchField`,
+  `ControlsRow`/`SortControl`/`FiltersButton`/`CountRow`, `FilterPills`,
+  `FilterSheet`/`SortSheet`, `SegmentedControl`, `StatusPill`, `ActionLink`,
+  `Avatar` (prop `font`/`solid`), `GameArt`, `Fab`, `BottomSheet`, `StepIndicator`,
+  `FormField`/`FormInput`/`FormSelect`/`FormDate`/`CoverUpload`/`PdfUpload`,
+  `GradientButton`, `Skeleton`/`SkeletonList`, `DangerConfirm`.
+- **Deps nativas añadidas** (requieren rebuild, no solo reload): `react-native-image-picker`
+  (portada) y `@react-native-documents/picker` (PDF). Para pods: `bundle exec pod
+  install` desde `ios/` (CocoaPods 1.15.2 del Gemfile; el `pod` de Homebrew es 1.16.2
+  y rompe `run-ios`).
+- **Figma**: archivo **"ECO 5 ESPORTS"**, `fileKey = WLPeo7vBpmHcNjtVzBUYmK`.
+  Conectado por el **MCP oficial de Figma** (`plugin:figma`, autenticado como
+  gersongarcia@zurco.com.mx). Para leer diseños: `get_design_context` / `get_screenshot`
+  / `get_metadata` con ese fileKey y el `node-id` de la URL (`123-456` → `123:456`).
+  Si un nodo es muy grande, la respuesta se guarda en archivo y devuelve metadata.
+  Usar **una sola** conexión a la vez (oficial *o* Desktop Bridge, nunca ambas).
+- **Pendiente menor**: el arte de juego (banner) se genera con `GameArt` (Views/SVG);
+  si dan assets reales, integrarlos.
 
 ---
 
