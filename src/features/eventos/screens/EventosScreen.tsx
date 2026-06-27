@@ -41,7 +41,7 @@ import { eventsService, type LeagueEvent } from '@/services';
 import { filterEvents, type EventFilterKey } from '../eventFilters';
 import { CrearEventoModal } from './CrearEventoScreen';
 import { EditarEventoModal } from './EditarEventoScreen';
-import { EventoDetalleModal } from './EventoDetalleScreen';
+import { EventoGestionModal } from './EventoGestionScreen';
 
 const FILTERS: FilterOption<EventFilterKey>[] = [
   { key: 'todos', label: 'Todos' },
@@ -239,7 +239,7 @@ export function EventosScreen() {
 
       <Fab style={styles.fab} onPress={() => setCreating(true)} />
       <CrearEventoModal visible={creating} onClose={() => setCreating(false)} />
-      <EventoDetalleModal
+      <EventoGestionModal
         visible={!!viewing}
         event={viewing}
         onClose={() => setViewing(null)}
