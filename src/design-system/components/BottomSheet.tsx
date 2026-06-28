@@ -102,17 +102,25 @@ export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
               <>
                 <View style={styles.headerRow}>
                   <View style={styles.titleRow}>
-                    <View style={styles.bar} />
-                    <Txt variant="h2">{title}</Txt>
+                    <View style={[styles.bar, glass && styles.barGlass]} />
+                    {glass ? (
+                      <Txt style={styles.titleGlass}>{title}</Txt>
+                    ) : (
+                      <Txt variant="h2">{title}</Txt>
+                    )}
                   </View>
                   <Pressable onPress={close} hitSlop={12}>
-                    <IconX size={20} color={theme.colors.textSecondary} strokeWidth={2} />
+                    <IconX size={glass ? 18 : 20} color={theme.colors.textOnGlassDim} strokeWidth={2} />
                   </Pressable>
                 </View>
                 {subtitle ? (
-                  <Txt variant="bodySm" color="textSecondary" style={styles.subtitle}>
-                    {subtitle}
-                  </Txt>
+                  glass ? (
+                    <Txt style={styles.subtitleGlass}>{subtitle}</Txt>
+                  ) : (
+                    <Txt variant="bodySm" color="textSecondary" style={styles.subtitle}>
+                      {subtitle}
+                    </Txt>
+                  )
                 ) : null}
               </>
             )}
@@ -172,5 +180,18 @@ const styles = StyleSheet.create({
   },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
   bar: { width: 4, height: 20, backgroundColor: theme.colors.brandRed },
+  barGlass: { height: 22, borderRadius: 2, backgroundColor: theme.colors.redBright },
+  titleGlass: {
+    fontFamily: theme.fonts.glassTitle,
+    fontSize: 19,
+    letterSpacing: -0.3,
+    color: '#f6f6f8',
+  },
   subtitle: { marginTop: theme.spacing.sm },
+  subtitleGlass: {
+    fontFamily: theme.fonts.glassBodyMedium,
+    fontSize: 13,
+    color: theme.colors.textOnGlassDim,
+    marginTop: theme.spacing.md,
+  },
 });

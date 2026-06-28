@@ -42,10 +42,19 @@ export function ConfirmModal({
           <Txt style={styles.title}>{title}</Txt>
           <Txt style={styles.body}>{body}</Txt>
           <View style={styles.actions}>
-            <Pressable style={styles.confirm} onPress={onConfirm}>
-              <Txt style={styles.confirmText}>{confirmLabel}</Txt>
-            </Pressable>
-            <AppButton label={cancelLabel} onPress={onCancel} fullWidth={false} style={styles.cancel} />
+            <AppButton
+              label={cancelLabel}
+              variant="secondary"
+              onPress={onCancel}
+              fullWidth={false}
+              style={styles.actionBtn}
+            />
+            <AppButton
+              label={confirmLabel}
+              onPress={onConfirm}
+              fullWidth={false}
+              style={styles.actionBtn}
+            />
           </View>
         </View>
       </View>
@@ -104,16 +113,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   actions: { flexDirection: 'row', gap: 10, marginTop: theme.spacing.xs, width: '100%' },
-  confirm: {
-    flex: 1,
-    height: 50,
-    borderRadius: 15,
-    backgroundColor: 'rgba(255,59,82,0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,59,82,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmText: { fontFamily: fonts.glassBodyBold, fontSize: 14, color: RED },
-  cancel: { flex: 1, height: 50 },
+  actionBtn: { flex: 1, height: 50 },
 });

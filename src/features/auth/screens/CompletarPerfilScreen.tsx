@@ -192,19 +192,20 @@ export function CompletarPerfilScreen({ navigation }: Props) {
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
+          {/* Header fijo (no se oculta al hacer scroll) */}
+          <View style={styles.headerFixed}>
             <BackButton glass style={styles.back} />
-
-            {/* Header */}
             <Txt style={styles.eyebrow}>// PASO 2 DE 2 · TU PERFIL</Txt>
             <Txt style={styles.title}>Completa tu perfil</Txt>
             <View style={styles.progressWrap}>
               <ProgressBar progress={progress} />
             </View>
+          </View>
 
+          <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
             {/* Foto de perfil */}
             <View style={styles.photoRow}>
               <Pressable style={styles.photoBox} onPress={() => setPhotoSheet(true)}>
@@ -402,23 +403,20 @@ export function CompletarPerfilScreen({ navigation }: Props) {
       {photoSheet ? (
         <BottomSheet
           ref={photoSheetRef}
+          glass
           title="Foto de perfil"
           onClose={() => setPhotoSheet(false)}>
           <Pressable style={styles.photoOption} onPress={() => pickFrom('camera')}>
             <View style={styles.photoOptionIcon}>
               <IconCamera size={22} color={theme.colors.textPrimary} strokeWidth={1.9} />
             </View>
-            <Txt variant="body" color="textPrimary" style={styles.flex}>
-              Tomar foto
-            </Txt>
+            <Txt style={styles.optionText}>Tomar foto</Txt>
           </Pressable>
           <Pressable style={styles.photoOption} onPress={() => pickFrom('library')}>
             <View style={styles.photoOptionIcon}>
               <IconPhoto size={22} color={theme.colors.textPrimary} strokeWidth={1.9} />
             </View>
-            <Txt variant="body" color="textPrimary" style={styles.flex}>
-              Elegir de la galería
-            </Txt>
+            <Txt style={styles.optionText}>Elegir de la galería</Txt>
           </Pressable>
         </BottomSheet>
       ) : null}
@@ -426,6 +424,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
       {paisSheet ? (
         <BottomSheet
           ref={paisSheetRef}
+          glass
           title="Selecciona tu país"
           onClose={() => setPaisSheet(false)}>
           {NATIONALITIES.map(n => {
@@ -436,11 +435,9 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                 style={styles.countryRow}
                 onPress={() => selectPais(n.label)}>
                 <Txt style={styles.flag}>{n.flag}</Txt>
-                <Txt variant="body" color="textPrimary" style={styles.flex}>
-                  {n.label}
-                </Txt>
+                <Txt style={styles.optionText}>{n.label}</Txt>
                 {active ? (
-                  <IconCircleCheck size={20} color={theme.colors.brandRed} strokeWidth={2} />
+                  <IconCircleCheck size={20} color={theme.colors.redSoft} strokeWidth={2} />
                 ) : null}
               </Pressable>
             );
@@ -456,19 +453,14 @@ export function CompletarPerfilScreen({ navigation }: Props) {
         onRequestClose={() => setShowCalendar(false)}>
         <Pressable style={styles.calScrim} onPress={() => setShowCalendar(false)} />
         <View style={styles.calSheet}>
+          <View style={styles.calHandle} />
           <View style={styles.calHeader}>
             <Pressable onPress={() => setShowCalendar(false)} hitSlop={8}>
-              <Txt variant="button" color="textSecondary">
-                Cancelar
-              </Txt>
+              <Txt style={styles.calCancel}>Cancelar</Txt>
             </Pressable>
-            <Txt variant="label" color="textSecondary">
-              FECHA DE NACIMIENTO
-            </Txt>
+            <Txt style={styles.calTitle}>FECHA DE NACIMIENTO</Txt>
             <Pressable onPress={confirmDate} hitSlop={8}>
-              <Txt variant="button" color="brandRedHover">
-                Listo
-              </Txt>
+              <Txt style={styles.calDone}>Listo</Txt>
             </Pressable>
           </View>
           <DateTimePicker
@@ -477,7 +469,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             display="inline"
             maximumDate={new Date()}
             themeVariant="dark"
-            accentColor={theme.colors.brandRed}
+            accentColor={theme.colors.redBright}
             onChange={(_, d) => d && setTempDate(d)}
             style={styles.calPicker}
           />
@@ -493,13 +485,19 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   flex: { flex: 1 },
   safe: { flex: 1 },
-  content: {
+  headerFixed: {
     paddingHorizontal: theme.spacing['2xl'],
     paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
+    gap: theme.spacing.xs,
+  },
+  content: {
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing['2xl'],
     gap: theme.spacing.md,
   },
-  back: { marginBottom: -theme.spacing.xs },
+  back: { marginBottom: theme.spacing.xs, alignSelf: 'flex-start' },
   eyebrow: {
     fontFamily: fonts.glassBodyBold,
     fontSize: 11,
@@ -630,31 +628,44 @@ const styles = StyleSheet.create({
   },
   addSocialText: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: theme.colors.textOnGlassDim },
   // Calendario
-  calScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' },
+  calScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   calSheet: {
-    backgroundColor: theme.colors.surface1,
-    borderTopLeftRadius: theme.radius.xl,
-    borderTopRightRadius: theme.radius.xl,
+    backgroundColor: 'rgba(18,14,16,0.98)',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     borderTopWidth: 1,
-    borderColor: theme.colors.borderDefault,
+    borderColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing['3xl'],
+  },
+  calHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 99,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignSelf: 'center',
+    marginBottom: theme.spacing.sm,
   },
   calHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
   },
+  calCancel: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: theme.colors.textOnGlassDim },
+  calTitle: { fontFamily: fonts.glassBodyBold, fontSize: 11, letterSpacing: 1.2, color: theme.colors.textOnGlassDim },
+  calDone: { fontFamily: fonts.glassBodyBold, fontSize: 14, color: theme.colors.redSoft },
   calPicker: { alignSelf: 'center' },
-  // Selector de país
+  // Selector de país / opciones de foto
+  optionText: { flex: 1, fontFamily: fonts.glassBodyMedium, fontSize: 15, color: theme.colors.textPrimary },
   countryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderDefault,
+    borderBottomColor: theme.colors.glassBorder,
   },
   flag: { fontSize: 22 },
   // Opciones del selector de foto
@@ -662,15 +673,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderDefault,
+    borderBottomColor: theme.colors.glassBorder,
   },
   photoOptionIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surface2,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: theme.colors.glassFillStrong,
+    borderWidth: 1,
+    borderColor: theme.colors.glassBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
