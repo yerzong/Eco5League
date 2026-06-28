@@ -4,9 +4,10 @@
  * Estados: default · pressed · disabled · loading.
  * Genérico y reutilizable; reemplaza a AngularButton en el flujo de acceso.
  */
-import React, { useId } from 'react';
+import React, { useId, useState } from 'react';
 import {
   ActivityIndicator,
+  LayoutChangeEvent,
   Pressable,
   StyleSheet,
   View,
@@ -101,6 +102,9 @@ export function AppButton({
   style,
 }: AppButtonProps) {
   const gradId = useId();
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const onLayout = (e: LayoutChangeEvent) =>
+    setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height });
   const inactive = disabled || loading;
   const showGradient = variant === 'primary' && !disabled;
   const color = contentColor(variant, disabled);
@@ -108,6 +112,7 @@ export function AppButton({
   return (
     <Pressable
       onPress={onPress}
+      onLayout={onLayout}
       disabled={inactive}
       style={({ pressed }) => [
         styles.base,
@@ -117,15 +122,15 @@ export function AppButton({
       ]}>
       {({ pressed }) => (
         <>
-          {showGradient ? (
-            <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+          {showGradient && size.w > 0 ? (
+            <Svg width={size.w} height={size.h} style={StyleSheet.absoluteFill}>
               <Defs>
                 <LinearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
                   <Stop offset="0" stopColor={pressed ? '#e02a40' : theme.colors.redBright} />
                   <Stop offset="1" stopColor={pressed ? '#b80e20' : theme.colors.redDeep} />
                 </LinearGradient>
               </Defs>
-              <Rect x="0" y="0" width="100%" height="100%" rx={16} fill={`url(#${gradId})`} />
+              <Rect x="0" y="0" width={size.w} height={size.h} rx={16} fill={`url(#${gradId})`} />
             </Svg>
           ) : null}
           <View style={styles.row}>
