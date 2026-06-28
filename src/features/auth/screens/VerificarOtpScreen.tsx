@@ -149,7 +149,7 @@ export function VerificarOtpScreen({ navigation }: Props) {
 
       <ConfirmModal
         visible={exit.visible}
-        title="¿CANCELAR VERIFICACIÓN?"
+        title="¿Cancelar verificación?"
         body="Tu número de teléfono no quedará verificado. Podrás verificarlo más tarde desde tu perfil."
         cancelLabel="Cancelar"
         confirmLabel="Sí, salir"

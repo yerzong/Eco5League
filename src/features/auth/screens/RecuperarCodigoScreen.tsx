@@ -141,7 +141,7 @@ export function RecuperarCodigoScreen({ navigation, route }: Props) {
 
       <ConfirmModal
         visible={exit.visible}
-        title="¿CANCELAR RECUPERACIÓN?"
+        title="¿Cancelar recuperación?"
         body="Si sales ahora tendrás que solicitar un nuevo código para recuperar tu cuenta."
         cancelLabel="Cancelar"
         confirmLabel="Sí, salir"

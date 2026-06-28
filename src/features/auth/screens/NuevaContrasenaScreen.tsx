@@ -135,7 +135,7 @@ export function NuevaContrasenaScreen({ navigation, route }: Props) {
 
       <ConfirmModal
         visible={exit.visible}
-        title="¿SALIR SIN GUARDAR?"
+        title="¿Salir sin guardar?"
         body="Tu contraseña no se ha actualizado. Tendrás que reiniciar el proceso de recuperación."
         cancelLabel="Cancelar"
         confirmLabel="Sí, salir"

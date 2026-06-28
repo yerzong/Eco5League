@@ -391,7 +391,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
 
       <ConfirmModal
         visible={exit.visible}
-        title="¿SALIR SIN GUARDAR?"
+        title="¿Salir sin guardar?"
         body="Perderás la información ingresada. Tu perfil quedará incompleto hasta que completes este paso."
         cancelLabel="Cancelar"
         confirmLabel="Sí, regresar"
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.glassBorder,
     borderRadius: 16,
   },
-  xboxInfo: { flex: 1, gap: 3 },
+  xboxInfo: { flex: 1 },
   xboxTitle: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: 'rgba(246,246,248,0.95)' },
   xboxHint: { fontFamily: fonts.glassBodyMedium, fontSize: 12, color: 'rgba(246,246,248,0.45)' },
   xboxBtn: {
