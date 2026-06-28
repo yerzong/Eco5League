@@ -11,10 +11,12 @@ import { Txt } from './Txt';
 interface SocialButtonProps {
   label: string;
   icon: React.ComponentType<IconProps>;
-  /** Color de fondo (usar theme.providerColors). */
-  color: string;
+  /** Color de fondo (usar theme.providerColors). Ignorado si glass. */
+  color?: string;
   /** Color de ícono/texto. Default blanco. */
   contentColor?: string;
+  /** Estilo "glass" (rediseño de acceso): vidrio translúcido. */
+  glass?: boolean;
   onPress?: () => void;
   style?: ViewStyle;
 }
@@ -24,6 +26,7 @@ export function SocialButton({
   icon: Icon,
   color,
   contentColor = theme.colors.white,
+  glass,
   onPress,
   style,
 }: SocialButtonProps) {
@@ -32,7 +35,7 @@ export function SocialButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
-        { backgroundColor: color },
+        glass ? styles.glass : { backgroundColor: color },
         pressed && styles.pressed,
         style,
       ]}>
@@ -54,6 +57,13 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     borderRadius: theme.radius.sm,
   },
+  glass: {
+    backgroundColor: theme.colors.glassFill,
+    borderWidth: 1,
+    borderColor: theme.colors.glassBorder,
+    borderRadius: 16,
+    height: 52,
+  },
   pressed: { opacity: 0.88 },
-  label: { letterSpacing: 0.5 },
+  label: { letterSpacing: 0.84 },
 });

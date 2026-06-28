@@ -46,6 +46,26 @@ export const palette = {
 
   // Blanco base
   white: '#ffffff',
+
+  // ---- Tema "glass" (rediseño de Acceso) ----
+  /** Fondo profundo de las pantallas glass (más oscuro que bgOuter). */
+  bgDeep: '#060608',
+  /** Degradado del botón primario nuevo (claro → oscuro). */
+  redBright: '#ff3b52',
+  redDeep: '#e11d36',
+  /** Acento rojo para enlaces/eyebrows sobre fondo glass. */
+  redSoft: '#ff5f73',
+  /** Rojo sólido del botón Danger. */
+  redDanger: '#d11429',
+  /** Superficies translúcidas (vidrio) y sus bordes. */
+  glassFill: 'rgba(255,255,255,0.05)',
+  glassFillStrong: 'rgba(255,255,255,0.06)',
+  glassBorder: 'rgba(255,255,255,0.09)',
+  glassBorderStrong: 'rgba(255,255,255,0.13)',
+  /** Texto sobre fondo glass (con opacidades del diseño). */
+  textOnGlass: 'rgba(246,246,248,0.85)',
+  textOnGlassDim: 'rgba(246,246,248,0.55)',
+  textOnGlassFaint: 'rgba(246,246,248,0.4)',
 } as const;
 
 /**

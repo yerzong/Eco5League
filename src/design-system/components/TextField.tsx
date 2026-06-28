@@ -37,6 +37,8 @@ interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   multiline?: boolean;
   /** Ícono presionable a la derecha (p. ej. calendario para abrir picker). */
   rightAction?: { icon: IconCmp; onPress: () => void };
+  /** Estilo "glass" (rediseño de acceso): vidrio translúcido sobre fondo oscuro. */
+  glass?: boolean;
 }
 
 export function TextField({
@@ -50,6 +52,7 @@ export function TextField({
   disabled,
   multiline,
   rightAction,
+  glass,
   ...inputProps
 }: TextFieldProps) {
   const [hidden, setHidden] = useState(!!password);
@@ -58,7 +61,10 @@ export function TextField({
     <View style={styles.wrap}>
       {label ? (
         <View style={styles.labelRow}>
-          <Txt variant="label" color="textSecondary" style={styles.label}>
+          <Txt
+            variant="label"
+            color={glass ? undefined : 'textSecondary'}
+            style={[styles.label, ...(glass ? [styles.labelGlass] : [])]}>
             {label.toUpperCase()}
           </Txt>
           {required ? <Txt style={styles.req}>*</Txt> : null}
@@ -72,16 +78,21 @@ export function TextField({
       <View
         style={[
           styles.box,
+          glass && styles.boxGlass,
           multiline && styles.boxMultiline,
           disabled && styles.boxDisabled,
           (error || invalid) ? styles.boxError : null,
         ]}>
         {Icon ? (
-          <Icon size={20} color={theme.colors.textTertiary} strokeWidth={1.75} />
+          <Icon
+            size={20}
+            color={glass ? 'rgba(246,246,248,0.5)' : theme.colors.textTertiary}
+            strokeWidth={1.75}
+          />
         ) : null}
         <TextInput
-          style={[styles.input, multiline && styles.inputMultiline]}
-          placeholderTextColor={theme.colors.textTertiary}
+          style={[styles.input, glass && styles.inputGlass, multiline && styles.inputMultiline]}
+          placeholderTextColor={glass ? theme.colors.textOnGlassFaint : theme.colors.textTertiary}
           secureTextEntry={hidden}
           autoCapitalize="none"
           editable={!disabled}
@@ -117,6 +128,7 @@ const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.sm },
   labelRow: { flexDirection: 'row', gap: theme.spacing.xs },
   label: { letterSpacing: 0.5 },
+  labelGlass: { color: theme.colors.textOnGlassDim, letterSpacing: 1.5 },
   req: { color: theme.colors.brandRedHover, fontFamily: theme.fonts.label, fontSize: 12 },
   box: {
     flexDirection: 'row',
@@ -128,6 +140,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.borderDefault,
     borderRadius: theme.radius.sm,
+  },
+  boxGlass: {
+    backgroundColor: theme.colors.glassFill,
+    borderColor: theme.colors.glassBorder,
+    borderRadius: 18,
+    paddingHorizontal: 18,
   },
   boxMultiline: {
     height: 80,
@@ -146,6 +164,10 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.body,
     fontSize: 14,
     padding: 0,
+  },
+  inputGlass: {
+    fontFamily: theme.fonts.bodyMedium,
+    fontSize: 15,
   },
   inputMultiline: {
     height: '100%',

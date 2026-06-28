@@ -16,10 +16,9 @@ import {
   Txt,
   HexBadge,
   GlowBackground,
-  AngularButton,
+  AppButton,
   TextField,
   SocialButton,
-  Eyebrow,
 } from '@/design-system/components';
 import { IconMail, IconLock, IconBrandXbox, IconBrandDiscord } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
@@ -72,7 +71,7 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      <GlowBackground size={440} centerY={0.04} />
+      <GlowBackground size={440} centerY={0.0} />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
@@ -84,66 +83,64 @@ export function LoginScreen({ navigation }: Props) {
             showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
-              <HexBadge size={56} borderWidth={6}>
+              <HexBadge size={48} borderWidth={5}>
                 <Txt style={styles.e5}>E5</Txt>
               </HexBadge>
               <View style={styles.headerText}>
-                <Eyebrow label="// Acceso" />
-                <Txt style={styles.title}>INICIA SESIÓN</Txt>
-                <Txt variant="body" color="textSecondary">
+                <Txt style={styles.eyebrow}>// ACCESO</Txt>
+                <Txt style={styles.title}>Inicia sesión</Txt>
+                <Txt style={styles.subtitle}>
                   Entra con tu correo, o continúa con Xbox / Discord.
                 </Txt>
               </View>
             </View>
 
             {/* Campos */}
-            <TextField
-              label="Correo"
-              icon={IconMail}
-              placeholder="tu@correo.com"
-              keyboardType="email-address"
-              autoComplete="email"
-              value={email}
-              onChangeText={t => {
-                setEmail(t);
-                if (emailError || credentialError) clearErrors();
-              }}
-              error={emailError}
-              invalid={!!credentialError}
-            />
-
-            <View>
+            <View style={styles.fields}>
               <TextField
-                label="Contraseña"
-                icon={IconLock}
-                placeholder="Tu contraseña"
-                password
-                value={password}
+                glass
+                label="Correo"
+                icon={IconMail}
+                placeholder="tu@correo.com"
+                keyboardType="email-address"
+                autoComplete="email"
+                value={email}
                 onChangeText={t => {
-                  setPassword(t);
-                  if (passwordError || credentialError) clearErrors();
+                  setEmail(t);
+                  if (emailError || credentialError) clearErrors();
                 }}
-                error={passwordError}
+                error={emailError}
                 invalid={!!credentialError}
               />
-              {credentialError ? (
-                <Txt variant="caption" color="danger" style={styles.credError}>
-                  {credentialError}
-                </Txt>
-              ) : null}
-              <Pressable
-                style={styles.forgot}
-                onPress={() => navigation.navigate('RecuperarAcceso')}>
-                <Txt style={styles.forgotText}>Recuperar acceso</Txt>
-              </Pressable>
+
+              <View>
+                <TextField
+                  glass
+                  label="Contraseña"
+                  icon={IconLock}
+                  placeholder="Tu contraseña"
+                  password
+                  value={password}
+                  onChangeText={t => {
+                    setPassword(t);
+                    if (passwordError || credentialError) clearErrors();
+                  }}
+                  error={passwordError}
+                  invalid={!!credentialError}
+                />
+                {credentialError ? (
+                  <Txt style={styles.credError}>{credentialError}</Txt>
+                ) : null}
+                <Pressable
+                  style={styles.forgot}
+                  onPress={() => navigation.navigate('RecuperarAcceso')}>
+                  <Txt style={styles.forgotText}>Recuperar acceso</Txt>
+                </Pressable>
+              </View>
             </View>
 
             {/* CTA */}
-            <AngularButton
-              label="INICIAR SESIÓN"
-              height={54}
-              onPress={handleSubmit}
-            />
+            <AppButton label="Iniciar sesión" onPress={handleSubmit} />
 
             {/* Divisor */}
             <View style={styles.divider}>
@@ -154,31 +151,19 @@ export function LoginScreen({ navigation }: Props) {
 
             {/* Sociales */}
             <View style={styles.social}>
-              <SocialButton
-                label="Xbox"
-                icon={IconBrandXbox}
-                color={theme.providerColors.xbox}
-                onPress={() => signIn()}
-              />
-              <SocialButton
-                label="Discord"
-                icon={IconBrandDiscord}
-                color={theme.providerColors.discord}
-                onPress={() => signIn()}
-              />
+              <SocialButton glass label="Xbox" icon={IconBrandXbox} onPress={() => signIn()} />
+              <SocialButton glass label="Discord" icon={IconBrandDiscord} onPress={() => signIn()} />
             </View>
 
             {/* Crear cuenta */}
             <View style={styles.signupRow}>
-              <Txt variant="bodySm" color="textSecondary">
-                ¿No tienes cuenta?
-              </Txt>
+              <Txt style={styles.signupText}>¿No tienes cuenta?</Txt>
               <Pressable onPress={() => navigation.navigate('CrearCuenta')}>
                 <Txt style={styles.signupLink}>Crear cuenta</Txt>
               </Pressable>
             </View>
 
-            <Txt variant="caption" color="textTertiary" style={styles.terms}>
+            <Txt style={styles.terms}>
               Al continuar aceptas los Términos y el Aviso de Privacidad.
             </Txt>
           </ScrollView>
@@ -189,45 +174,62 @@ export function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgOuter },
+  root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   flex: { flex: 1 },
   safe: { flex: 1 },
   content: {
-    paddingHorizontal: theme.spacing['3xl'],
-    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing['2xl'],
-    gap: theme.spacing.xl,
+    gap: theme.spacing['2xl'],
   },
   header: { gap: theme.spacing.lg },
-  headerText: { gap: theme.spacing.xs },
+  headerText: { gap: theme.spacing.sm },
   e5: {
     fontFamily: fonts.headingBold,
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: 17,
+    lineHeight: 22,
     color: theme.colors.white,
     textAlign: 'center',
   },
-  title: {
-    fontFamily: fonts.headingBold,
-    fontSize: 38,
-    lineHeight: 44,
-    color: theme.colors.textPrimary,
-    marginTop: theme.spacing.xs,
+  eyebrow: {
+    fontFamily: fonts.label,
+    fontSize: 11,
+    color: 'rgba(255,59,82,0.9)',
+    letterSpacing: 2,
   },
-  credError: { marginTop: theme.spacing.sm },
+  title: {
+    fontFamily: fonts.label,
+    fontSize: 30,
+    lineHeight: 36,
+    letterSpacing: -0.5,
+    color: theme.colors.textPrimary,
+  },
+  subtitle: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: theme.colors.textOnGlassDim,
+  },
+  fields: { gap: 18 },
+  credError: {
+    marginTop: theme.spacing.sm,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: theme.colors.redSoft,
+  },
   forgot: { alignSelf: 'flex-end', marginTop: theme.spacing.md },
   forgotText: {
-    fontFamily: fonts.meta,
-    fontSize: 12,
-    color: theme.colors.brandRedHover,
-    letterSpacing: 0.5,
+    fontFamily: fonts.label,
+    fontSize: 13,
+    color: theme.colors.redSoft,
   },
-  divider: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
-  line: { flex: 1, height: 1, backgroundColor: theme.colors.borderDefault },
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  line: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
   dividerText: {
-    fontFamily: fonts.meta,
-    fontSize: 10,
-    color: theme.colors.textTertiary,
+    fontFamily: fonts.label,
+    fontSize: 11,
+    color: theme.colors.textOnGlassFaint,
     letterSpacing: 1.5,
   },
   social: { flexDirection: 'row', gap: theme.spacing.md },
@@ -237,10 +239,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: theme.spacing.xs,
   },
-  signupLink: {
-    fontFamily: fonts.button,
+  signupText: {
+    fontFamily: fonts.bodyMedium,
     fontSize: 13,
-    color: theme.colors.brandRedHover,
+    color: theme.colors.textOnGlassDim,
   },
-  terms: { textAlign: 'center' },
+  signupLink: {
+    fontFamily: fonts.label,
+    fontSize: 13,
+    color: theme.colors.redSoft,
+  },
+  terms: {
+    textAlign: 'center',
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: 'rgba(246,246,248,0.35)',
+  },
 });
