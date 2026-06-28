@@ -342,19 +342,17 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                     : `@${s.handle}`;
                 return (
                   <View key={`${s.networkKey}-${i}`} style={styles.socialRow}>
-                    <View style={styles.socialIcon}>
-                      <Icon size={20} color={net.color} strokeWidth={1.9} />
-                    </View>
+                    <Icon size={26} color={net.color} strokeWidth={1.9} />
                     <View style={styles.socialInfo}>
                       <Txt style={styles.socialNet}>{net.label}</Txt>
                       <Txt style={styles.socialHandle}>{display}</Txt>
                     </View>
                     <Pressable
-                      style={styles.socialRemove}
+                      hitSlop={10}
                       onPress={() =>
                         setSocials(prev => prev.filter((_, j) => j !== i))
                       }>
-                      <IconX size={14} color={theme.colors.textSecondary} strokeWidth={2} />
+                      <IconX size={16} color={theme.colors.textOnGlassFaint} strokeWidth={2} />
                     </Pressable>
                   </View>
                 );
@@ -366,7 +364,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                     onAdd: s => setSocials(prev => [...prev, s]),
                   })
                 }>
-                <IconPlus size={18} color={theme.colors.textOnGlassDim} strokeWidth={2} />
+                <IconPlus size={18} color="rgba(246,246,248,0.7)" strokeWidth={2} />
                 <Txt style={styles.addSocialText}>
                   {socials.length ? 'Agregar otra red' : 'Agregar red social'}
                 </Txt>
@@ -377,7 +375,8 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             <SectionLabel glass label="Cuenta" />
             <TextField
               glass
-              label="Correo electrónico"              disabled
+              label="Correo electrónico"
+              disabled
               icon={IconMail}
               value="gerson@gmail.com (de tu proveedor)"
             />
@@ -588,45 +587,34 @@ const styles = StyleSheet.create({
   socialRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    height: 54,
-    paddingHorizontal: theme.spacing.md,
+    gap: 12,
+    height: 52,
+    paddingHorizontal: 14,
     backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
     borderColor: theme.colors.glassBorder,
-    borderRadius: 16,
-  },
-  socialIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.glassFillStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 14,
   },
   socialInfo: { flex: 1, gap: 1 },
-  socialNet: { fontFamily: fonts.glassBodyMedium, fontSize: 11.5, color: theme.colors.textOnGlassDim },
-  socialHandle: { fontFamily: fonts.glassBodyMedium, fontSize: 13, color: theme.colors.textPrimary },
-  socialRemove: {
-    width: 28,
-    height: 28,
-    borderRadius: 99,
-    backgroundColor: theme.colors.glassFillStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
+  socialNet: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    color: 'rgba(246,246,248,0.45)',
   },
+  socialHandle: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: 'rgba(246,246,248,0.95)' },
   addSocial: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.sm,
-    height: 48,
+    height: 44,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: theme.colors.glassBorderStrong,
+    borderColor: 'rgba(255,255,255,0.14)',
     borderStyle: 'dashed',
   },
-  addSocialText: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: theme.colors.textOnGlassDim },
+  addSocialText: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: 'rgba(246,246,248,0.7)' },
   // Calendario
   calScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   calSheet: {
