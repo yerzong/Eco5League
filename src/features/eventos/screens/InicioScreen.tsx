@@ -1,103 +1,138 @@
 /**
- * SA-M01 · Inicio (panel de Super-admin) — fiel al diseño de Figma.
- * Dashboard: saludo + métricas (KPIs) + tareas pendientes + actividad reciente.
- * El header (campana + avatar) abre Notificaciones y Perfil.
+ * SA ✦ Inicio (panel Super-admin) — rediseño "glass".
+ * Header (campana + avatar) + KPIs + "Requiere tu acción" + evento "En curso".
+ * Datos vía dashboardService + eventsService (mock).
  */
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
-  Txt,
   GlowBackground,
-  Eyebrow,
-  HeaderActions,
-  StatCard,
-  Tag,
+  GlassScreenHeader,
+  GlassSectionHeader,
+  GlassKpiCard,
+  GlassTaskCard,
+  GlassEventCard,
 } from '@/design-system/components';
 import { theme } from '@/design-system/theme';
-import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
-import { dashboardService, type DashboardData } from '@/services';
+import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/events/status';
+import {
+  dashboardService,
+  eventsService,
+  type DashboardData,
+  type LeagueEvent,
+} from '@/services';
+
+/** Agrupa en pares para la grilla 2×2. */
+function chunkPairs<T>(arr: T[]): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += 2) out.push(arr.slice(i, i + 2));
+  return out;
+}
+
+/** Color de acento (glass) por categoría de notificación. */
+const CAT_COLOR: Record<string, string> = {
+  inscripcion: '#2e8fd6',
+  transferencia: '#f6a623',
+  resultado: '#ff2d46',
+  sistema: '#34d77f',
+};
+
+/** Color del badge de estado del evento. */
+function statusColor(status: EventStatus): string {
+  switch (status) {
+    case 'en_curso':
+      return '#34d77f';
+    case 'inscripcion':
+      return '#f6a623';
+    case 'finalizado':
+      return theme.colors.textOnGlassFaint;
+    default:
+      return theme.colors.textOnGlassDim;
+  }
+}
 
 export function InicioScreen() {
   const navigation = useNavigation<any>();
   const { initials } = useSession();
   const [data, setData] = useState<DashboardData>();
+  const [event, setEvent] = useState<LeagueEvent>();
 
   useEffect(() => {
     dashboardService.getOverview().then(setData);
+    eventsService.getEvents().then(evs => {
+      setEvent(evs.find(e => e.status === 'en_curso') ?? evs[0]);
+    });
   }, []);
 
   return (
     <View style={styles.root}>
-      <GlowBackground size={440} centerY={0.02} />
+      <GlowBackground size={460} centerY={0.0} />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        {/* Header fijo */}
-        <View style={styles.header}>
-          <View style={styles.flex}>
-            <Eyebrow label="// Panel super-admin" />
-            <Txt style={styles.greeting}>Hola, Gerson</Txt>
-          </View>
-          <HeaderActions
+        <View style={styles.headerWrap}>
+          <GlassScreenHeader
+            title="Inicio"
             initials={initials}
             onNotifications={() => navigation.navigate('Notificaciones')}
             onProfile={() => navigation.navigate('Perfil')}
           />
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}>
-          {/* KPIs */}
-          <View style={styles.statsGrid}>
-            {(data?.stats ?? []).map(s => (
-              <StatCard
-                key={s.key}
-                value={s.value}
-                label={s.label}
-                color={theme.categoryColors[s.category]}
-                style={styles.statHalf}
-              />
-            ))}
-          </View>
-
-          {/* Tareas pendientes */}
-          <View style={styles.divider} />
-          <Eyebrow label="// Tareas pendientes" />
-          <View style={styles.section}>
-            {(data?.tasks ?? []).map(t => {
-              const color = theme.categoryColors[t.category];
-              return (
-                <View key={t.id} style={styles.taskCard}>
-                  <View style={[styles.taskAccent, { backgroundColor: color }]} />
-                  <Tag label={t.tagLabel} color={color} />
-                  <Txt variant="bodySm" color="textPrimary" style={styles.taskText}>
-                    {t.text}
-                  </Txt>
-                </View>
-              );
-            })}
-          </View>
-
-          {/* Actividad reciente */}
-          <View style={styles.divider} />
-          <Eyebrow label="// Actividad reciente" />
-          <View style={styles.activity}>
-            {(data?.activity ?? []).map(a => (
-              <View key={a.id} style={styles.activityRow}>
-                <View
-                  style={[styles.dot, { backgroundColor: theme.categoryColors[a.category] }]}
-                />
-                <Txt variant="bodySm" color="textPrimary" style={styles.flex}>
-                  {a.text}
-                </Txt>
-                <Txt variant="caption" color="textTertiary">
-                  {a.time}
-                </Txt>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* KPIs (2×2) */}
+          <View style={styles.kpis}>
+            {chunkPairs(data?.stats ?? []).map((pair, i) => (
+              <View key={i} style={styles.kpiRow}>
+                {pair.map(s => (
+                  <GlassKpiCard
+                    key={s.key}
+                    value={s.value}
+                    label={s.label}
+                    color={CAT_COLOR[s.category] ?? '#ff2d46'}
+                  />
+                ))}
+                {pair.length === 1 ? <View style={styles.kpiSpacer} /> : null}
               </View>
             ))}
           </View>
+
+          {/* Requiere tu acción */}
+          {data?.tasks?.length ? (
+            <>
+              <GlassSectionHeader label="// REQUIERE TU ACCIÓN" />
+              <View style={styles.tasks}>
+                {data.tasks.map(t => (
+                  <GlassTaskCard
+                    key={t.id}
+                    tag={t.tagLabel}
+                    text={t.text}
+                    color={CAT_COLOR[t.category] ?? '#ff2d46'}
+                  />
+                ))}
+              </View>
+            </>
+          ) : null}
+
+          {/* En curso */}
+          {event ? (
+            <>
+              <GlassSectionHeader label="// EN CURSO" />
+              <GlassEventCard
+                code={event.code}
+                game={event.game}
+                title={event.title}
+                subtitle={event.subtitle}
+                accent={event.accent}
+                statusLabel={EVENT_STATUS_LABELS[event.status]}
+                statusColor={statusColor(event.status)}
+                teamsLabel={event.teamsLabel}
+                teamsColor={event.status === 'en_curso' ? '#34d77f' : theme.colors.textOnGlassDim}
+                dateLabel={event.dateLabel}
+              />
+            </>
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -105,53 +140,21 @@ export function InicioScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgOuter },
+  root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   safe: { flex: 1 },
-  flex: { flex: 1 },
-  content: {
+  headerWrap: {
     paddingHorizontal: theme.spacing['2xl'],
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing['3xl'],
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing['2xl'],
-    paddingTop: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.md,
   },
-  greeting: {
-    fontFamily: fonts.headingBold,
-    fontSize: 32,
-    lineHeight: 40,
-    color: theme.colors.textPrimary,
-    marginTop: theme.spacing.xs,
+  content: {
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.sm,
+    paddingBottom: 120,
+    gap: 18,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.md,
-  },
-  statHalf: { flexBasis: '47%' },
-  divider: {
-    height: 1,
-    backgroundColor: theme.colors.borderDefault,
-    marginVertical: theme.spacing.xl,
-  },
-  section: { gap: theme.spacing.md, marginTop: theme.spacing.md },
-  taskCard: {
-    backgroundColor: theme.colors.surface1,
-    borderRadius: theme.radius.md,
-    paddingVertical: theme.spacing.md,
-    paddingLeft: theme.spacing.lg,
-    paddingRight: theme.spacing.md,
-    gap: 6,
-    overflow: 'hidden',
-  },
-  taskAccent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
-  taskText: {},
-  activity: { gap: theme.spacing.lg, marginTop: theme.spacing.lg },
-  activityRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  kpis: { gap: 12 },
+  kpiRow: { flexDirection: 'row', gap: 12 },
+  kpiSpacer: { flex: 1 },
+  tasks: { gap: 10 },
 });
