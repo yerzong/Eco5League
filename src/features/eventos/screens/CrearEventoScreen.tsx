@@ -137,7 +137,10 @@ function GlassInput({
   );
 }
 
-// ─── GlassSegmented ──────────────────────────────────────────────────────────
+// ─── GlassSegmented (con píldora deslizante animada) ─────────────────────────
+
+const SEG_P = 5;
+const SEG_G = 5;
 
 function GlassSegmented({
   options,
@@ -148,15 +151,40 @@ function GlassSegmented({
   value: string;
   onChange: (k: string) => void;
 }) {
+  const [segWidth, setSegWidth] = useState(0);
+  const n = options.length;
+  const initialIdx = Math.max(0, options.findIndex(o => o.key === value));
+  const slideAnim = useRef(new Animated.Value(initialIdx)).current;
+
+  const pillW = segWidth > 0 ? (segWidth - SEG_P * 2 - SEG_G * (n - 1)) / n : 0;
+  const pillX = slideAnim.interpolate({
+    inputRange: options.map((_, i) => i),
+    outputRange: options.map((_, i) => i * (pillW + SEG_G)),
+  });
+
+  const handleChange = (key: string) => {
+    const idx = options.findIndex(o => o.key === key);
+    onChange(key);
+    Animated.spring(slideAnim, {
+      toValue: idx,
+      useNativeDriver: true,
+      damping: 20,
+      stiffness: 280,
+      mass: 0.8,
+    }).start();
+  };
+
   return (
-    <View style={gs.seg}>
+    <View style={gs.seg} onLayout={e => setSegWidth(e.nativeEvent.layout.width)}>
+      {pillW > 0 && (
+        <Animated.View
+          style={[gs.segPill, { width: pillW, transform: [{ translateX: pillX }] }]}
+        />
+      )}
       {options.map(o => {
         const active = o.key === value;
         return (
-          <Pressable
-            key={o.key}
-            style={[gs.segTab, active && gs.segTabActive]}
-            onPress={() => onChange(o.key)}>
+          <Pressable key={o.key} style={gs.segTab} onPress={() => handleChange(o.key)}>
             <Txt style={active ? gs.segLabelActive : gs.segLabelIdle}>{o.label}</Txt>
           </Pressable>
         );
@@ -665,9 +693,11 @@ const gs = StyleSheet.create({
   preview: { height: 118, borderRadius: 14, overflow: 'hidden', backgroundColor: '#14080a' },
   previewActions: {
     position: 'absolute',
-    top: 14,
+    top: 0,
+    bottom: 0,
     right: 14,
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   changeBtn: {
@@ -710,8 +740,15 @@ const gs = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
     borderRadius: 16, height: 52,
   },
+  segPill: {
+    position: 'absolute',
+    top: SEG_P,
+    bottom: SEG_P,
+    left: SEG_P,
+    borderRadius: 12,
+    backgroundColor: '#ef2b3e',
+  },
   segTab: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  segTabActive: { backgroundColor: '#ef2b3e' },
   segLabelActive: { fontFamily: fonts.glassBodyBold, fontSize: 13.5, color: '#f6f6f8' },
   segLabelIdle: { fontFamily: fonts.glassBodySemibold, fontSize: 13.5, color: 'rgba(246,246,248,0.55)' },
 
