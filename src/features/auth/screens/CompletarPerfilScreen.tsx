@@ -595,14 +595,20 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.glassBorder,
     borderRadius: 14,
   },
-  socialInfo: { flex: 1, gap: 1 },
+  socialInfo: { flex: 1 },
   socialNet: {
     fontFamily: fonts.glassBodyBold,
     fontSize: 11,
+    lineHeight: 15,
     letterSpacing: 0.5,
     color: 'rgba(246,246,248,0.45)',
   },
-  socialHandle: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: 'rgba(246,246,248,0.95)' },
+  socialHandle: {
+    fontFamily: fonts.glassBodySemibold,
+    fontSize: 14,
+    lineHeight: 18,
+    color: 'rgba(246,246,248,0.95)',
+  },
   addSocial: {
     flexDirection: 'row',
     alignItems: 'center',
