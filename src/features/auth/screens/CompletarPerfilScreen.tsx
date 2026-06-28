@@ -196,7 +196,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
-            <BackButton style={styles.back} />
+            <BackButton glass style={styles.back} />
 
             {/* Header */}
             <Txt style={styles.eyebrow}>// PASO 2 DE 2 · TU PERFIL</Txt>
@@ -220,12 +220,9 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                 ) : null}
               </Pressable>
               <View style={styles.photoText}>
-                <View style={styles.fieldLabelRow}>
-                  <Txt variant="label" style={styles.fieldLabel}>
-                    FOTO DE PERFIL (PNG)
-                  </Txt>
-                  <Txt style={styles.req}>*</Txt>
-                </View>
+                <Txt variant="label" style={styles.fieldLabel}>
+                  FOTO DE PERFIL (PNG)
+                </Txt>
                 <Txt style={styles.photoHint}>Quita-fondos integrado para PNG limpio.</Txt>
               </View>
             </View>
@@ -234,9 +231,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             <SectionLabel label="Datos personales" />
             <TextField
               glass
-              label="Nombre(s)"
-              required
-              placeholder="Ej. Gerson"
+              label="Nombre(s)"              placeholder="Ej. Gerson"
               value={nombre}
               onChangeText={t => {
                 setNombre(t);
@@ -246,9 +241,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             />
             <TextField
               glass
-              label="Apellidos"
-              required
-              placeholder="Ej. García"
+              label="Apellidos"              placeholder="Ej. García"
               value={apellidos}
               onChangeText={t => {
                 setApellidos(t);
@@ -258,9 +251,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             />
             <TextField
               glass
-              label="Fecha de nacimiento"
-              required
-              placeholder="dd / mm / aaaa"
+              label="Fecha de nacimiento"              placeholder="dd / mm / aaaa"
               keyboardType="numeric"
               value={fecha}
               onChangeText={t => {
@@ -272,9 +263,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             />
             <SelectField
               glass
-              label="Nacionalidad"
-              required
-              placeholder="Selecciona tu país"
+              label="Nacionalidad"              placeholder="Selecciona tu país"
               value={pais}
               error={errors.pais}
               onPress={() => setPaisSheet(true)}
@@ -389,9 +378,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             <SectionLabel label="Cuenta" />
             <TextField
               glass
-              label="Correo electrónico"
-              required
-              disabled
+              label="Correo electrónico"              disabled
               icon={IconMail}
               value="gerson@gmail.com (de tu proveedor)"
             />

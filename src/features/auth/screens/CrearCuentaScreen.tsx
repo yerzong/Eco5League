@@ -78,7 +78,7 @@ export function CrearCuentaScreen({ navigation }: Props) {
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
-            <BackButton style={styles.back} />
+            <BackButton glass style={styles.back} />
 
             {/* Header */}
             <View style={styles.headerText}>
