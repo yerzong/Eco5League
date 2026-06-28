@@ -38,6 +38,6 @@ export function PasswordRules({ value }: { value: string }) {
 const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.xs, marginTop: theme.spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
-  mark: { fontFamily: theme.fonts.label, fontSize: 12, width: 12 },
-  label: { fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.textOnGlassDim },
+  mark: { fontFamily: theme.fonts.glassBodyBold, fontSize: 12, width: 12 },
+  label: { fontFamily: theme.fonts.glassBodyMedium, fontSize: 12, color: theme.colors.textOnGlassDim },
 });

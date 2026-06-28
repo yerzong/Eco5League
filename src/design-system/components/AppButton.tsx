@@ -158,5 +158,5 @@ const styles = StyleSheet.create({
   },
   fullWidth: { width: '100%' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  label: { fontFamily: fonts.label, fontSize: 15, letterSpacing: 0.3 },
+  label: { fontFamily: fonts.glassBodyBold, fontSize: 15, letterSpacing: 0.3 },
 });

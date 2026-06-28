@@ -228,7 +228,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             </View>
 
             {/* Datos personales */}
-            <SectionLabel label="Datos personales" />
+            <SectionLabel glass label="Datos personales" />
             <TextField
               glass
               label="Nombre(s)"              placeholder="Ej. Gerson"
@@ -270,7 +270,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             />
 
             {/* Identidad de juego */}
-            <SectionLabel label="Identidad de juego" />
+            <SectionLabel glass label="Identidad de juego" />
             <TextField
               glass
               label="Gamertag"
@@ -283,9 +283,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
 
             {/* Tarjeta verificación Xbox */}
             <View style={styles.xboxCard}>
-              <View style={styles.xboxAvatar}>
-                <IconBrandXbox size={22} color={theme.colors.accentGreen} strokeWidth={2} />
-              </View>
+              <IconBrandXbox size={22} color={EMERALD} strokeWidth={2} />
               <View style={styles.xboxInfo}>
                 <Txt style={styles.xboxTitle}>Verificación de Xbox</Txt>
                 <Txt style={styles.xboxHint}>Obligatorio solo si vas a competir.</Txt>
@@ -301,7 +299,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             </View>
 
             {/* Perfil público */}
-            <SectionLabel label="Perfil público · Opcional" />
+            <SectionLabel glass label="Perfil público · Opcional" />
             <TextField
               glass
               label="Descripción / Bio"
@@ -375,7 +373,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             </View>
 
             {/* Cuenta */}
-            <SectionLabel label="Cuenta" />
+            <SectionLabel glass label="Cuenta" />
             <TextField
               glass
               label="Correo electrónico"              disabled
@@ -489,6 +487,8 @@ export function CompletarPerfilScreen({ navigation }: Props) {
   );
 }
 
+const EMERALD = '#34d399';
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   flex: { flex: 1 },
@@ -501,13 +501,13 @@ const styles = StyleSheet.create({
   },
   back: { marginBottom: -theme.spacing.xs },
   eyebrow: {
-    fontFamily: fonts.label,
+    fontFamily: fonts.glassBodyBold,
     fontSize: 11,
     color: 'rgba(255,59,82,0.9)',
     letterSpacing: 2,
   },
   title: {
-    fontFamily: fonts.label,
+    fontFamily: fonts.glassTitle,
     fontSize: 30,
     lineHeight: 36,
     letterSpacing: -0.5,
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   photoImg: { width: '100%', height: '100%' },
-  photoHint: { fontFamily: fonts.body, fontSize: 12, color: theme.colors.textOnGlassDim },
+  photoHint: { fontFamily: fonts.glassBodyMedium, fontSize: 12, color: theme.colors.textOnGlassDim },
   photoLoading: {
     position: 'absolute',
     top: 0,
@@ -542,43 +542,37 @@ const styles = StyleSheet.create({
   },
   photoText: { flex: 1, gap: theme.spacing.xs },
   fieldLabelRow: { flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center' },
-  fieldLabel: { letterSpacing: 1.5, color: theme.colors.textOnGlassDim },
-  optional: { fontFamily: fonts.body, fontSize: 11.5, color: theme.colors.textOnGlassFaint },
-  req: { color: theme.colors.redSoft, fontFamily: fonts.label, fontSize: 12 },
+  fieldLabel: { fontFamily: fonts.glassBodyBold, letterSpacing: 1.5, color: theme.colors.textOnGlassDim },
+  optional: { fontFamily: fonts.glassBodyMedium, fontSize: 11.5, color: theme.colors.textOnGlassFaint },
   field: { gap: theme.spacing.sm },
   // Xbox card
   xboxCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    padding: theme.spacing.md,
+    minHeight: 66,
+    paddingLeft: 14,
+    paddingRight: 12,
+    paddingVertical: 12,
     backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
     borderColor: theme.colors.glassBorder,
     borderRadius: 16,
   },
-  xboxAvatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 99,
-    backgroundColor: 'rgba(46,168,70,0.16)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  xboxInfo: { flex: 1, gap: 2 },
-  xboxTitle: { fontFamily: fonts.label, fontSize: 13, color: theme.colors.textPrimary },
-  xboxHint: { fontFamily: fonts.body, fontSize: 11.5, color: theme.colors.textOnGlassDim },
+  xboxInfo: { flex: 1, gap: 3 },
+  xboxTitle: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: 'rgba(246,246,248,0.95)' },
+  xboxHint: { fontFamily: fonts.glassBodyMedium, fontSize: 12, color: 'rgba(246,246,248,0.45)' },
   xboxBtn: {
+    width: 80,
     height: 36,
-    paddingHorizontal: theme.spacing.lg,
-    borderRadius: 10,
-    backgroundColor: 'rgba(46,168,70,0.16)',
+    borderRadius: 12,
+    backgroundColor: 'rgba(52,211,153,0.16)',
     borderWidth: 1,
-    borderColor: 'rgba(46,168,70,0.4)',
+    borderColor: 'rgba(52,211,153,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  xboxBtnText: { fontFamily: fonts.label, fontSize: 12, color: theme.colors.accentGreen },
+  xboxBtnText: { fontFamily: fonts.glassBodyBold, fontSize: 13, color: EMERALD },
   // Teléfono
   phoneRow: { flexDirection: 'row', gap: theme.spacing.md, alignItems: 'flex-start' },
   otpBtn: {
@@ -591,7 +585,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  otpBtnText: { fontFamily: fonts.label, fontSize: 12, color: theme.colors.textPrimary },
+  otpBtnText: { fontFamily: fonts.glassBodyBold, fontSize: 12, color: theme.colors.textPrimary },
   // Redes
   socialRow: {
     flexDirection: 'row',
@@ -613,8 +607,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   socialInfo: { flex: 1, gap: 1 },
-  socialNet: { fontFamily: fonts.body, fontSize: 11.5, color: theme.colors.textOnGlassDim },
-  socialHandle: { fontFamily: fonts.bodyMedium, fontSize: 13, color: theme.colors.textPrimary },
+  socialNet: { fontFamily: fonts.glassBodyMedium, fontSize: 11.5, color: theme.colors.textOnGlassDim },
+  socialHandle: { fontFamily: fonts.glassBodyMedium, fontSize: 13, color: theme.colors.textPrimary },
   socialRemove: {
     width: 28,
     height: 28,
@@ -634,7 +628,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.glassBorderStrong,
     borderStyle: 'dashed',
   },
-  addSocialText: { fontFamily: fonts.button, fontSize: 14, color: theme.colors.textOnGlassDim },
+  addSocialText: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: theme.colors.textOnGlassDim },
   // Calendario
   calScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' },
   calSheet: {

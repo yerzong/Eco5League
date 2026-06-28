@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.sm },
   labelRow: { flexDirection: 'row', gap: theme.spacing.xs },
   label: { letterSpacing: 0.5 },
-  labelGlass: { color: theme.colors.textOnGlassDim, letterSpacing: 1.5 },
+  labelGlass: { fontFamily: theme.fonts.glassBodyBold, color: theme.colors.textOnGlassDim, letterSpacing: 1.5 },
   box: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -99,6 +99,6 @@ const styles = StyleSheet.create({
   },
   boxError: { borderColor: theme.colors.danger },
   value: { flex: 1, fontSize: 14 },
-  valueGlass: { fontFamily: theme.fonts.bodyMedium, fontSize: 15 },
+  valueGlass: { fontFamily: theme.fonts.glassBodyMedium, fontSize: 15 },
   req: { color: theme.colors.brandRedHover, fontFamily: theme.fonts.label, fontSize: 12 },
 });

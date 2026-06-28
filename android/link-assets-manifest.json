@@ -14,6 +14,22 @@
       "sha1": "328397b7d344bf5d04ccc40bf0ceec1bd9ec5caa"
     },
     {
+      "path": "assets/fonts/Manrope-Bold.ttf",
+      "sha1": "01294b51047b78de8e1ea2be56e4d8016a142eee"
+    },
+    {
+      "path": "assets/fonts/Manrope-Medium.ttf",
+      "sha1": "5d6251dd6cab451090bb828ead5b527f2b1735b2"
+    },
+    {
+      "path": "assets/fonts/Manrope-Regular.ttf",
+      "sha1": "a431e671cc55508081b5d6587818b71c28144d0f"
+    },
+    {
+      "path": "assets/fonts/Manrope-SemiBold.ttf",
+      "sha1": "5ce9b2f2a4b3d50bbaf24f8651ba53497c3de098"
+    },
+    {
       "path": "assets/fonts/Oswald-Bold.ttf",
       "sha1": "e725b3e9fc9a3f3f86e7a36732b056fe4d999d1e"
     },
@@ -24,6 +40,14 @@
     {
       "path": "assets/fonts/Oswald-SemiBold.ttf",
       "sha1": "acefc84985130ffcb17a6e442889928a5465bff8"
+    },
+    {
+      "path": "assets/fonts/SpaceGrotesk-Bold.ttf",
+      "sha1": "b9f963307804ab88c47dcc4eb20d63541c0ccbdf"
+    },
+    {
+      "path": "assets/fonts/SpaceGrotesk-Medium.ttf",
+      "sha1": "be5f19f487796f38150edb4494251485afb0dea8"
     }
   ]
 }

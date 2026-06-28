@@ -15,6 +15,17 @@ export const fonts = {
   body: 'Inter-Regular',
   bodyMedium: 'Inter-Medium',
   label: 'Inter-SemiBold',
+
+  // ---- Tema "glass" (rediseño de Acceso): Manrope + Space Grotesk ----
+  /** Títulos de pantalla glass (Space Grotesk Bold). */
+  glassTitle: 'SpaceGrotesk-Bold',
+  /** Display secundario glass (Space Grotesk Medium). */
+  glassDisplay: 'SpaceGrotesk-Medium',
+  /** Cuerpo/labels glass (Manrope). */
+  glassBody: 'Manrope-Regular',
+  glassBodyMedium: 'Manrope-Medium',
+  glassBodySemibold: 'Manrope-SemiBold',
+  glassBodyBold: 'Manrope-Bold',
 } as const;
 
 export const typography = {

@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.sm },
   labelRow: { flexDirection: 'row', gap: theme.spacing.xs },
   label: { letterSpacing: 0.5 },
-  labelGlass: { color: theme.colors.textOnGlassDim, letterSpacing: 1.5 },
+  labelGlass: { fontFamily: theme.fonts.glassBodyBold, color: theme.colors.textOnGlassDim, letterSpacing: 1.5 },
   req: { color: theme.colors.brandRedHover, fontFamily: theme.fonts.label, fontSize: 12 },
   box: {
     flexDirection: 'row',
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   inputGlass: {
-    fontFamily: theme.fonts.bodyMedium,
+    fontFamily: theme.fonts.glassBodyMedium,
     fontSize: 15,
   },
   inputMultiline: {

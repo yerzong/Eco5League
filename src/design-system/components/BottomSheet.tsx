@@ -31,6 +31,8 @@ interface BottomSheetProps {
   subtitle?: string;
   /** Header personalizado (reemplaza la barra+título+✕ por defecto). */
   header?: React.ReactNode;
+  /** Estilo "glass" (rediseño): panel oscuro translúcido, radio 28. */
+  glass?: boolean;
   /** Se llama DESPUÉS de la animación de salida. */
   onClose: () => void;
   children: React.ReactNode;
@@ -42,7 +44,7 @@ export interface BottomSheetHandle {
 }
 
 export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
-  function BottomSheet({ title, subtitle, header, onClose, children }, ref) {
+  function BottomSheet({ title, subtitle, header, glass, onClose, children }, ref) {
   const { height: SCREEN_H } = useWindowDimensions();
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
   const scrim = useRef(new Animated.Value(0)).current;
@@ -89,10 +91,11 @@ export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
       </Animated.View>
 
       <View style={styles.anchor} pointerEvents="box-none">
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+        <Animated.View
+          style={[styles.sheet, glass && styles.sheetGlass, { transform: [{ translateY }] }]}>
           {/* Zona de arrastre: asa + encabezado */}
           <View {...pan.panHandlers}>
-            <View style={styles.handle} />
+            <View style={[styles.handle, glass && styles.handleGlass]} />
             {header ? (
               header
             ) : (
@@ -147,6 +150,12 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.md,
     maxHeight: '88%',
   },
+  sheetGlass: {
+    backgroundColor: 'rgba(18,14,16,0.98)',
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
   handle: {
     width: 44,
     height: 4,
@@ -155,6 +164,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: theme.spacing.lg,
   },
+  handleGlass: { width: 40, backgroundColor: 'rgba(255,255,255,0.25)' },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
