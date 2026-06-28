@@ -19,6 +19,8 @@ interface SelectFieldProps {
   icon?: React.ComponentType<IconProps>;
   /** Ícono derecho. Default: chevron. */
   rightIcon?: React.ComponentType<IconProps>;
+  /** Estilo "glass" (rediseño de acceso). */
+  glass?: boolean;
   onPress?: () => void;
 }
 
@@ -30,13 +32,17 @@ export function SelectField({
   error,
   icon: Icon,
   rightIcon: RightIcon = IconChevronDown,
+  glass,
   onPress,
 }: SelectFieldProps) {
   return (
     <View style={styles.wrap}>
       {label ? (
         <View style={styles.labelRow}>
-          <Txt variant="label" color="textSecondary" style={styles.label}>
+          <Txt
+            variant="label"
+            color={glass ? undefined : 'textSecondary'}
+            style={[styles.label, ...(glass ? [styles.labelGlass] : [])]}>
             {label.toUpperCase()}
           </Txt>
           {required ? <Txt style={styles.req}>*</Txt> : null}
@@ -44,14 +50,18 @@ export function SelectField({
       ) : null}
       <Pressable
         onPress={onPress}
-        style={[styles.box, error ? styles.boxError : null]}>
+        style={[styles.box, glass && styles.boxGlass, error ? styles.boxError : null]}>
         {Icon ? (
-          <Icon size={20} color={theme.colors.textTertiary} strokeWidth={1.75} />
+          <Icon
+            size={20}
+            color={glass ? 'rgba(246,246,248,0.5)' : theme.colors.textTertiary}
+            strokeWidth={1.75}
+          />
         ) : null}
         <Txt
           variant="body"
           color={value ? 'textPrimary' : 'textTertiary'}
-          style={styles.value}>
+          style={[styles.value, ...(glass && value ? [styles.valueGlass] : [])]}>
           {value || placeholder}
         </Txt>
         <RightIcon size={18} color={theme.colors.textSecondary} strokeWidth={1.75} />
@@ -69,7 +79,7 @@ const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.sm },
   labelRow: { flexDirection: 'row', gap: theme.spacing.xs },
   label: { letterSpacing: 0.5 },
-  req: { color: theme.colors.brandRedHover, fontFamily: theme.fonts.label, fontSize: 12 },
+  labelGlass: { color: theme.colors.textOnGlassDim, letterSpacing: 1.5 },
   box: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -81,6 +91,14 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.borderDefault,
     borderRadius: theme.radius.sm,
   },
+  boxGlass: {
+    backgroundColor: theme.colors.glassFill,
+    borderColor: theme.colors.glassBorder,
+    borderRadius: 18,
+    paddingHorizontal: 18,
+  },
   boxError: { borderColor: theme.colors.danger },
   value: { flex: 1, fontSize: 14 },
+  valueGlass: { fontFamily: theme.fonts.bodyMedium, fontSize: 15 },
+  req: { color: theme.colors.brandRedHover, fontFamily: theme.fonts.label, fontSize: 12 },
 });

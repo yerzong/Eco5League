@@ -80,7 +80,7 @@ export function TextField({
           styles.box,
           glass && styles.boxGlass,
           multiline && styles.boxMultiline,
-          disabled && styles.boxDisabled,
+          disabled && !glass && styles.boxDisabled,
           (error || invalid) ? styles.boxError : null,
         ]}>
         {Icon ? (

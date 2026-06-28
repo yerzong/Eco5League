@@ -30,11 +30,10 @@ import {
   Txt,
   GlowBackground,
   BackButton,
-  Eyebrow,
   SectionLabel,
   TextField,
   SelectField,
-  AngularButton,
+  AppButton,
   ConfirmModal,
   ProgressBar,
   BottomSheet,
@@ -76,14 +75,10 @@ function formatDateInput(raw: string): string {
 function FieldLabel({ label, optional }: { label: string; optional?: boolean }) {
   return (
     <View style={styles.fieldLabelRow}>
-      <Txt variant="label" color="textSecondary" style={styles.fieldLabel}>
+      <Txt variant="label" style={styles.fieldLabel}>
         {label.toUpperCase()}
       </Txt>
-      {optional ? (
-        <Txt variant="caption" color="textTertiary">
-          · Opcional
-        </Txt>
-      ) : null}
+      {optional ? <Txt style={styles.optional}>· Opcional</Txt> : null}
     </View>
   );
 }
@@ -191,7 +186,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      <GlowBackground size={420} centerY={0.03} />
+      <GlowBackground size={440} centerY={0.0} />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
@@ -204,8 +199,8 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             <BackButton style={styles.back} />
 
             {/* Header */}
-            <Eyebrow label="// Paso 2 de 2 · Tu perfil" />
-            <Txt style={styles.title}>COMPLETA TU PERFIL</Txt>
+            <Txt style={styles.eyebrow}>// PASO 2 DE 2 · TU PERFIL</Txt>
+            <Txt style={styles.title}>Completa tu perfil</Txt>
             <View style={styles.progressWrap}>
               <ProgressBar progress={progress} />
             </View>
@@ -216,7 +211,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                 {photo ? (
                   <Image source={{ uri: photo }} style={styles.photoImg} />
                 ) : (
-                  <IconCamera size={26} color={theme.colors.textSecondary} strokeWidth={1.75} />
+                  <IconCamera size={26} color={theme.colors.textOnGlassDim} strokeWidth={1.75} />
                 )}
                 {processingPhoto ? (
                   <View style={styles.photoLoading}>
@@ -226,20 +221,19 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               </Pressable>
               <View style={styles.photoText}>
                 <View style={styles.fieldLabelRow}>
-                  <Txt variant="label" color="textSecondary" style={styles.fieldLabel}>
+                  <Txt variant="label" style={styles.fieldLabel}>
                     FOTO DE PERFIL (PNG)
                   </Txt>
                   <Txt style={styles.req}>*</Txt>
                 </View>
-                <Txt variant="caption" color="textSecondary">
-                  Quita-fondos integrado para PNG limpio.
-                </Txt>
+                <Txt style={styles.photoHint}>Quita-fondos integrado para PNG limpio.</Txt>
               </View>
             </View>
 
             {/* Datos personales */}
             <SectionLabel label="Datos personales" />
             <TextField
+              glass
               label="Nombre(s)"
               required
               placeholder="Ej. Gerson"
@@ -251,6 +245,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               error={errors.nombre}
             />
             <TextField
+              glass
               label="Apellidos"
               required
               placeholder="Ej. García"
@@ -262,6 +257,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               error={errors.apellidos}
             />
             <TextField
+              glass
               label="Fecha de nacimiento"
               required
               placeholder="dd / mm / aaaa"
@@ -275,6 +271,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               rightAction={{ icon: IconCalendar, onPress: () => setShowCalendar(true) }}
             />
             <SelectField
+              glass
               label="Nacionalidad"
               required
               placeholder="Selecciona tu país"
@@ -286,6 +283,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             {/* Identidad de juego */}
             <SectionLabel label="Identidad de juego" />
             <TextField
+              glass
               label="Gamertag"
               optional
               disabled
@@ -297,15 +295,11 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             {/* Tarjeta verificación Xbox */}
             <View style={styles.xboxCard}>
               <View style={styles.xboxAvatar}>
-                <IconBrandXbox size={22} color={theme.colors.white} strokeWidth={2} />
+                <IconBrandXbox size={22} color={theme.colors.accentGreen} strokeWidth={2} />
               </View>
               <View style={styles.xboxInfo}>
-                <Txt variant="label" color="textPrimary">
-                  Verificación de Xbox
-                </Txt>
-                <Txt variant="caption" color="textSecondary">
-                  Obligatorio solo si vas a competir en un roster.
-                </Txt>
+                <Txt style={styles.xboxTitle}>Verificación de Xbox</Txt>
+                <Txt style={styles.xboxHint}>Obligatorio solo si vas a competir.</Txt>
               </View>
               <Pressable
                 style={styles.xboxBtn}
@@ -320,6 +314,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             {/* Perfil público */}
             <SectionLabel label="Perfil público · Opcional" />
             <TextField
+              glass
               label="Descripción / Bio"
               optional
               multiline
@@ -332,6 +327,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
               <View style={styles.phoneRow}>
                 <View style={styles.flex}>
                   <TextField
+                    glass
                     icon={IconPhone}
                     placeholder="+52 55 0000 0000"
                     keyboardType="phone-pad"
@@ -362,12 +358,8 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                       <Icon size={20} color={net.color} strokeWidth={1.9} />
                     </View>
                     <View style={styles.socialInfo}>
-                      <Txt variant="caption" color="textSecondary">
-                        {net.label}
-                      </Txt>
-                      <Txt variant="bodyMedium" color="textPrimary">
-                        {display}
-                      </Txt>
+                      <Txt style={styles.socialNet}>{net.label}</Txt>
+                      <Txt style={styles.socialHandle}>{display}</Txt>
                     </View>
                     <Pressable
                       style={styles.socialRemove}
@@ -386,8 +378,8 @@ export function CompletarPerfilScreen({ navigation }: Props) {
                     onAdd: s => setSocials(prev => [...prev, s]),
                   })
                 }>
-                <IconPlus size={18} color={theme.colors.textSecondary} strokeWidth={2} />
-                <Txt variant="button" color="textSecondary">
+                <IconPlus size={18} color={theme.colors.textOnGlassDim} strokeWidth={2} />
+                <Txt style={styles.addSocialText}>
                   {socials.length ? 'Agregar otra red' : 'Agregar red social'}
                 </Txt>
               </Pressable>
@@ -396,6 +388,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
             {/* Cuenta */}
             <SectionLabel label="Cuenta" />
             <TextField
+              glass
               label="Correo electrónico"
               required
               disabled
@@ -406,11 +399,7 @@ export function CompletarPerfilScreen({ navigation }: Props) {
 
           {/* Footer fijo */}
           <View style={styles.footer}>
-            <AngularButton
-              label="FINALIZAR PERFIL"
-              height={56}
-              onPress={handleFinalizar}
-            />
+            <AppButton label="Finalizar perfil" onPress={handleFinalizar} />
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -514,21 +503,29 @@ export function CompletarPerfilScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgOuter },
+  root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   flex: { flex: 1 },
   safe: { flex: 1 },
   content: {
-    paddingHorizontal: theme.spacing['3xl'],
-    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing['2xl'],
     gap: theme.spacing.md,
   },
   back: { marginBottom: -theme.spacing.xs },
+  eyebrow: {
+    fontFamily: fonts.label,
+    fontSize: 11,
+    color: 'rgba(255,59,82,0.9)',
+    letterSpacing: 2,
+  },
   title: {
-    fontFamily: fonts.headingBold,
-    fontSize: 32,
-    lineHeight: 38,
+    fontFamily: fonts.label,
+    fontSize: 30,
+    lineHeight: 36,
+    letterSpacing: -0.5,
     color: theme.colors.textPrimary,
+    marginTop: theme.spacing.xs,
   },
   progressWrap: { marginVertical: theme.spacing.sm },
   // Foto
@@ -536,15 +533,16 @@ const styles = StyleSheet.create({
   photoBox: {
     width: 80,
     height: 80,
-    borderRadius: theme.radius.sm,
-    backgroundColor: theme.colors.surface1,
+    borderRadius: 14,
+    backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
-    borderColor: theme.colors.borderStrong,
+    borderColor: theme.colors.glassBorder,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   photoImg: { width: '100%', height: '100%' },
+  photoHint: { fontFamily: fonts.body, fontSize: 12, color: theme.colors.textOnGlassDim },
   photoLoading: {
     position: 'absolute',
     top: 0,
@@ -557,8 +555,9 @@ const styles = StyleSheet.create({
   },
   photoText: { flex: 1, gap: theme.spacing.xs },
   fieldLabelRow: { flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center' },
-  fieldLabel: { letterSpacing: 0.5 },
-  req: { color: theme.colors.brandRedHover, fontFamily: fonts.label, fontSize: 12 },
+  fieldLabel: { letterSpacing: 1.5, color: theme.colors.textOnGlassDim },
+  optional: { fontFamily: fonts.body, fontSize: 11.5, color: theme.colors.textOnGlassFaint },
+  req: { color: theme.colors.redSoft, fontFamily: fonts.label, fontSize: 12 },
   field: { gap: theme.spacing.sm },
   // Xbox card
   xboxCard: {
@@ -566,41 +565,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: theme.spacing.md,
     padding: theme.spacing.md,
-    backgroundColor: theme.colors.surface1,
+    backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
-    borderColor: theme.providerColors.xbox,
-    borderRadius: theme.radius.sm,
+    borderColor: theme.colors.glassBorder,
+    borderRadius: 16,
   },
   xboxAvatar: {
     width: 38,
     height: 38,
     borderRadius: 99,
-    backgroundColor: theme.providerColors.xbox,
+    backgroundColor: 'rgba(46,168,70,0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   xboxInfo: { flex: 1, gap: 2 },
+  xboxTitle: { fontFamily: fonts.label, fontSize: 13, color: theme.colors.textPrimary },
+  xboxHint: { fontFamily: fonts.body, fontSize: 11.5, color: theme.colors.textOnGlassDim },
   xboxBtn: {
     height: 36,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.radius.sm,
-    backgroundColor: theme.providerColors.xbox,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: 10,
+    backgroundColor: 'rgba(46,168,70,0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(46,168,70,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  xboxBtnText: { fontFamily: fonts.button, fontSize: 12, color: theme.colors.white },
+  xboxBtnText: { fontFamily: fonts.label, fontSize: 12, color: theme.colors.accentGreen },
   // Teléfono
   phoneRow: { flexDirection: 'row', gap: theme.spacing.md, alignItems: 'flex-start' },
   otpBtn: {
     height: 52,
     paddingHorizontal: theme.spacing.lg,
-    borderRadius: theme.radius.sm,
+    borderRadius: 16,
+    backgroundColor: theme.colors.glassFillStrong,
     borderWidth: 1,
-    borderColor: theme.colors.borderStrong,
+    borderColor: theme.colors.glassBorderStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  otpBtnText: { fontFamily: fonts.button, fontSize: 12, color: theme.colors.textPrimary },
+  otpBtnText: { fontFamily: fonts.label, fontSize: 12, color: theme.colors.textPrimary },
   // Redes
   socialRow: {
     flexDirection: 'row',
@@ -608,25 +612,27 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
     height: 54,
     paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.surface1,
+    backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
-    borderColor: theme.colors.borderDefault,
-    borderRadius: theme.radius.md,
+    borderColor: theme.colors.glassBorder,
+    borderRadius: 16,
   },
   socialIcon: {
     width: 34,
     height: 34,
     borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surface2,
+    backgroundColor: theme.colors.glassFillStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   socialInfo: { flex: 1, gap: 1 },
+  socialNet: { fontFamily: fonts.body, fontSize: 11.5, color: theme.colors.textOnGlassDim },
+  socialHandle: { fontFamily: fonts.bodyMedium, fontSize: 13, color: theme.colors.textPrimary },
   socialRemove: {
     width: 28,
     height: 28,
     borderRadius: 99,
-    backgroundColor: theme.colors.surface2,
+    backgroundColor: theme.colors.glassFillStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -636,11 +642,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: theme.spacing.sm,
     height: 48,
-    borderRadius: theme.radius.sm,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: theme.colors.borderStrong,
+    borderColor: theme.colors.glassBorderStrong,
     borderStyle: 'dashed',
   },
+  addSocialText: { fontFamily: fonts.button, fontSize: 14, color: theme.colors.textOnGlassDim },
   // Calendario
   calScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' },
   calSheet: {
@@ -688,11 +695,11 @@ const styles = StyleSheet.create({
   },
   // Footer
   footer: {
-    paddingHorizontal: theme.spacing['3xl'],
+    paddingHorizontal: theme.spacing['2xl'],
     paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.sm,
-    backgroundColor: theme.colors.bgBase,
+    backgroundColor: theme.colors.bgDeep,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.borderDefault,
+    borderTopColor: theme.colors.glassBorder,
   },
 });
