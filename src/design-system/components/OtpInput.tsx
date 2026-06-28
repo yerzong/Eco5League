@@ -18,6 +18,8 @@ interface OtpInputProps {
   error?: boolean;
   /** Si es false, no se puede editar (ej. ya verificado). */
   editable?: boolean;
+  /** Estilo "glass" (rediseño de acceso). */
+  glass?: boolean;
 }
 
 export function OtpInput({
@@ -27,12 +29,13 @@ export function OtpInput({
   autoFocus,
   error,
   editable = true,
+  glass,
 }: OtpInputProps) {
   const ref = useRef<TextInput>(null);
   const focus = () => ref.current?.focus();
 
   return (
-    <Pressable style={styles.row} onPress={editable ? focus : undefined}>
+    <Pressable style={[styles.row, glass && styles.rowGlass]} onPress={editable ? focus : undefined}>
       {Array.from({ length }).map((_, i) => {
         const char = value[i] ?? '';
         const active = i === value.length;
@@ -41,10 +44,12 @@ export function OtpInput({
             key={i}
             style={[
               styles.box,
-              active && styles.boxActive,
-              error && styles.boxError,
+              glass && styles.boxGlass,
+              glass && !!char && styles.boxGlassFilled,
+              active && (glass ? styles.boxActiveGlass : styles.boxActive),
+              error && (glass ? styles.boxErrorGlass : styles.boxError),
             ]}>
-            <Txt style={styles.digit}>{char}</Txt>
+            <Txt style={[styles.digit, ...(glass ? [styles.digitGlass] : [])]}>{char}</Txt>
           </View>
         );
       })}
@@ -65,6 +70,7 @@ export function OtpInput({
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: theme.spacing.sm, justifyContent: 'center' },
+  rowGlass: { gap: 10 },
   box: {
     flex: 1,
     maxWidth: 50,
@@ -76,13 +82,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  boxGlass: {
+    maxWidth: undefined,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: theme.colors.glassBorder,
+  },
+  boxGlassFilled: { backgroundColor: 'rgba(255,255,255,0.07)' },
   boxActive: { borderColor: theme.colors.brandRedHover },
+  boxActiveGlass: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,59,82,0.9)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
   boxError: { borderColor: theme.colors.danger },
+  boxErrorGlass: { borderWidth: 1.5, borderColor: 'rgba(255,59,82,0.9)' },
   digit: {
     fontFamily: fonts.heading,
     fontSize: 26,
     color: theme.colors.textPrimary,
   },
+  digitGlass: { fontFamily: fonts.glassTitle, fontSize: 22, color: '#f6f6f8' },
   hidden: {
     position: 'absolute',
     top: 0,
