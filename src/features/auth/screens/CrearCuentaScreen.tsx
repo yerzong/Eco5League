@@ -1,5 +1,7 @@
 /**
- * OB-03 · Crear cuenta (registro) — fiel al diseño de Figma.
+ * OB-03 · Crear cuenta (registro) — rediseño "glass".
+ * Fiel a Figma "📝 Crear cuenta ✦ glass". Misma lógica (validación, checklist
+ * de contraseña, correo registrado, contraseñas que no coinciden).
  */
 import React, { useState } from 'react';
 import {
@@ -15,10 +17,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Txt,
   GlowBackground,
-  AngularButton,
+  AppButton,
   TextField,
   SocialButton,
-  Eyebrow,
   BackButton,
   PasswordRules,
 } from '@/design-system/components';
@@ -67,7 +68,7 @@ export function CrearCuentaScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      <GlowBackground size={440} centerY={0.04} />
+      <GlowBackground size={440} centerY={0.0} />
 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
@@ -81,61 +82,60 @@ export function CrearCuentaScreen({ navigation }: Props) {
 
             {/* Header */}
             <View style={styles.headerText}>
-              <Eyebrow label="// Crear cuenta" />
-              <Txt style={styles.title}>CREA TU CUENTA</Txt>
-              <Txt variant="body" color="textSecondary">
-                Regístrate para competir en la liga ECO5.
-              </Txt>
+              <Txt style={styles.eyebrow}>// CREAR CUENTA</Txt>
+              <Txt style={styles.title}>Crea tu cuenta</Txt>
+              <Txt style={styles.subtitle}>Regístrate para competir en la liga ECO5.</Txt>
             </View>
 
             {/* Campos */}
-            <TextField
-              label="Correo"
-              icon={IconMail}
-              placeholder="tu@correo.com"
-              keyboardType="email-address"
-              autoComplete="email"
-              value={email}
-              onChangeText={t => {
-                setEmail(t);
-                clear('email');
-              }}
-              error={errors.email}
-            />
-            <View>
+            <View style={styles.fields}>
               <TextField
-                label="Contraseña"
-                icon={IconLock}
-                placeholder="Mínimo 8 caracteres"
-                password
-                value={password}
+                glass
+                label="Correo"
+                icon={IconMail}
+                placeholder="tu@correo.com"
+                keyboardType="email-address"
+                autoComplete="email"
+                value={email}
                 onChangeText={t => {
-                  setPassword(t);
-                  clear('password');
+                  setEmail(t);
+                  clear('email');
                 }}
-                error={errors.password}
+                error={errors.email}
               />
-              {password.length > 0 ? <PasswordRules value={password} /> : null}
+              <View>
+                <TextField
+                  glass
+                  label="Contraseña"
+                  icon={IconLock}
+                  placeholder="Mínimo 8 caracteres"
+                  password
+                  value={password}
+                  onChangeText={t => {
+                    setPassword(t);
+                    clear('password');
+                  }}
+                  error={errors.password}
+                />
+                {password.length > 0 ? <PasswordRules value={password} /> : null}
+              </View>
+              <TextField
+                glass
+                label="Confirmar contraseña"
+                icon={IconLock}
+                placeholder="Repite tu contraseña"
+                password
+                value={confirm}
+                onChangeText={t => {
+                  setConfirm(t);
+                  clear('confirm');
+                }}
+                error={errors.confirm}
+              />
             </View>
-            <TextField
-              label="Confirmar contraseña"
-              icon={IconLock}
-              placeholder="Repite tu contraseña"
-              password
-              value={confirm}
-              onChangeText={t => {
-                setConfirm(t);
-                clear('confirm');
-              }}
-              error={errors.confirm}
-            />
 
             {/* CTA */}
-            <AngularButton
-              label="CREAR CUENTA"
-              height={54}
-              onPress={handleSubmit}
-            />
+            <AppButton label="Crear cuenta" onPress={handleSubmit} />
 
             {/* Divisor */}
             <View style={styles.divider}>
@@ -147,33 +147,31 @@ export function CrearCuentaScreen({ navigation }: Props) {
             {/* Sociales */}
             <View style={styles.social}>
               <SocialButton
+                glass
                 label="Xbox"
                 icon={IconBrandXbox}
-                color={theme.providerColors.xbox}
                 onPress={() => navigation.navigate('CompletarPerfil')}
               />
               <SocialButton
+                glass
                 label="Discord"
                 icon={IconBrandDiscord}
-                color={theme.providerColors.discord}
                 onPress={() => navigation.navigate('CompletarPerfil')}
               />
             </View>
 
             {/* Ir a login */}
             <View style={styles.signupRow}>
-              <Txt variant="bodySm" color="textSecondary">
-                ¿Ya tienes cuenta?
-              </Txt>
+              <Txt style={styles.signupText}>¿Ya tienes cuenta?</Txt>
               <Pressable onPress={() => navigation.navigate('Login')}>
                 <Txt style={styles.signupLink}>Inicia sesión</Txt>
               </Pressable>
             </View>
 
-            <Txt variant="caption" color="textTertiary" style={styles.note}>
+            <Txt style={styles.note}>
               Después de crear tu cuenta, completas tu perfil de jugador.
             </Txt>
-            <Txt variant="caption" color="textTertiary" style={styles.note}>
+            <Txt style={styles.terms}>
               Al registrarte aceptas los Términos y el Aviso de Privacidad.
             </Txt>
           </ScrollView>
@@ -184,30 +182,43 @@ export function CrearCuentaScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgOuter },
+  root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   flex: { flex: 1 },
   safe: { flex: 1 },
   content: {
-    paddingHorizontal: theme.spacing['3xl'],
-    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing['2xl'],
-    gap: theme.spacing.xl,
+    gap: theme.spacing['2xl'],
   },
   back: { marginBottom: -theme.spacing.sm },
-  headerText: { gap: theme.spacing.xs },
-  title: {
-    fontFamily: fonts.headingBold,
-    fontSize: 38,
-    lineHeight: 44,
-    color: theme.colors.textPrimary,
-    marginTop: theme.spacing.xs,
+  headerText: { gap: theme.spacing.sm },
+  eyebrow: {
+    fontFamily: fonts.label,
+    fontSize: 11,
+    color: 'rgba(255,59,82,0.9)',
+    letterSpacing: 2,
   },
-  divider: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
-  line: { flex: 1, height: 1, backgroundColor: theme.colors.borderDefault },
+  title: {
+    fontFamily: fonts.label,
+    fontSize: 30,
+    lineHeight: 36,
+    letterSpacing: -0.5,
+    color: theme.colors.textPrimary,
+  },
+  subtitle: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: theme.colors.textOnGlassDim,
+  },
+  fields: { gap: 18 },
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  line: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
   dividerText: {
-    fontFamily: fonts.meta,
-    fontSize: 10,
-    color: theme.colors.textTertiary,
+    fontFamily: fonts.label,
+    fontSize: 11,
+    color: theme.colors.textOnGlassFaint,
     letterSpacing: 1.5,
   },
   social: { flexDirection: 'row', gap: theme.spacing.md },
@@ -217,10 +228,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: theme.spacing.xs,
   },
-  signupLink: {
-    fontFamily: fonts.button,
+  signupText: {
+    fontFamily: fonts.bodyMedium,
     fontSize: 13,
-    color: theme.colors.brandRedHover,
+    color: theme.colors.textOnGlassDim,
   },
-  note: { textAlign: 'center' },
+  signupLink: {
+    fontFamily: fonts.label,
+    fontSize: 13,
+    color: theme.colors.redSoft,
+  },
+  note: {
+    textAlign: 'center',
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: theme.colors.textOnGlassDim,
+  },
+  terms: {
+    textAlign: 'center',
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: 'rgba(246,246,248,0.35)',
+  },
 });

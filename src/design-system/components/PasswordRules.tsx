@@ -39,5 +39,5 @@ const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.xs, marginTop: theme.spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
   mark: { fontFamily: theme.fonts.label, fontSize: 12, width: 12 },
-  label: { fontFamily: theme.fonts.body, fontSize: 12, color: '#5b616b' },
+  label: { fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.textOnGlassDim },
 });
