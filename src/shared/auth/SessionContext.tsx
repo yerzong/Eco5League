@@ -34,7 +34,7 @@ function toInitials(name: string): string {
  * DEV: arranca con sesión iniciada para saltar el onboarding durante el
  * maquetado. Pon `false` para volver a exigir login.
  */
-const DEV_AUTOLOGIN = false;
+const DEV_AUTOLOGIN = true;
 const DEV_ROLE: Role = 'superadmin';
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
