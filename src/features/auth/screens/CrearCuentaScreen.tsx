@@ -74,19 +74,20 @@ export function CrearCuentaScreen({ navigation }: Props) {
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
+          {/* Header fijo (no se oculta al hacer scroll) */}
+          <View style={styles.headerFixed}>
             <BackButton glass style={styles.back} />
-
-            {/* Header */}
             <View style={styles.headerText}>
               <Txt style={styles.eyebrow}>// CREAR CUENTA</Txt>
               <Txt style={styles.title}>Crea tu cuenta</Txt>
               <Txt style={styles.subtitle}>Regístrate para competir en la liga ECO5.</Txt>
             </View>
+          </View>
 
+          <ScrollView
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
             {/* Campos */}
             <View style={styles.fields}>
               <TextField
@@ -185,13 +186,19 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   flex: { flex: 1 },
   safe: { flex: 1 },
-  content: {
+  headerFixed: {
     paddingHorizontal: theme.spacing['2xl'],
     paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
+    gap: theme.spacing.lg,
+  },
+  content: {
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing['2xl'],
     gap: theme.spacing['2xl'],
   },
-  back: { marginBottom: -theme.spacing.sm },
+  back: { alignSelf: 'flex-start' },
   headerText: { gap: theme.spacing.sm },
   eyebrow: {
     fontFamily: fonts.glassBodyBold,
