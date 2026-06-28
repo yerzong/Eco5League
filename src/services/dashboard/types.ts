@@ -9,7 +9,8 @@ export interface DashboardStat {
   key: string;
   value: number;
   label: string;
-  category: NotificationCategory;
+  /** Color de acento del KPI (cuadro + punto). Decorativo, no semántico. */
+  accent: string;
 }
 
 /** Tarea pendiente que requiere acción del admin. */

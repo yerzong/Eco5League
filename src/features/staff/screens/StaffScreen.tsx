@@ -1,7 +1,7 @@
 /**
- * SA-M03 · Staff (gestión) — v2 rediseñado, fiel a Figma.
- * Header fijo + búsqueda + fila de controles (orden + filtros) + chips por rol
- * + fila de conteo + lista de tarjetas de staff. Funcional + estado vacío.
+ * SAN ✦ Staff (gestión) — rediseño "glass", fiel a Figma (581:3408).
+ * Header + búsqueda + toolbar (orden + filtros) + conteo + lista de filas glass.
+ * Orden y filtros funcionales (sheets).
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -10,23 +10,19 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Txt,
   GlowBackground,
-  ScreenHeader,
-  SearchField,
-  ControlsRow,
-  CountRow,
-  FilterPills,
-  Avatar,
-  StatusPill,
-  ActionLink,
+  GlassScreenHeader,
+  GlassSearch,
+  GlassToolbar,
+  GlassCountRow,
+  GlassStaffRow,
   FilterSheet,
   SortSheet,
   Fab,
   SkeletonList,
-  type FilterOption,
   type SortOption,
 } from '@/design-system/components';
 import { useTabLoading } from '@/shared/hooks/useTabLoading';
-import { IconCalendar, IconSearch } from '@/design-system/icons';
+import { IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
@@ -37,18 +33,12 @@ import {
   type FilterSelection,
 } from '@/shared/filters';
 import { staffService, type StaffMember } from '@/services';
-import { filterStaff, type StaffFilterKey } from '../staffFilters';
+import { filterStaff } from '../staffFilters';
 
-const FILTERS: FilterOption<StaffFilterKey>[] = [
-  { key: 'todos', label: 'Todos' },
-  { key: 'caster', label: 'Caster' },
-  { key: 'streamer', label: 'Streamer' },
-  { key: 'moderador', label: 'Moderador' },
-];
-
+/** Estado → etiqueta + color (glass). */
 const STATUS = {
-  activo: { label: 'Activo', color: theme.colors.accentGreen },
-  inactivo: { label: 'Inactivo', color: theme.colors.textTertiary },
+  activo: { label: 'Activo', color: '#34d77f' },
+  inactivo: { label: 'Inactivo', color: theme.colors.textOnGlassFaint },
 } as const;
 
 /** ¿El staff tiene alguno de estos roles? */
@@ -101,7 +91,6 @@ export function StaffScreen() {
   const { initials } = useSession();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<StaffFilterKey>('todos');
   const [advanced, setAdvanced] = useState<FilterSelection>({});
   const [sortBy, setSortBy] = useState('nombre');
   const [sortDir, setSortDir] = useState<0 | 1>(0);
@@ -113,10 +102,7 @@ export function StaffScreen() {
     staffService.getStaff().then(setStaff);
   }, []);
 
-  const quick = useMemo(
-    () => filterStaff(staff, search, filter),
-    [staff, search, filter],
-  );
+  const quick = useMemo(() => filterStaff(staff, search, 'todos'), [staff, search]);
   const base = useMemo(
     () => applyFilterGroups(quick, FILTER_GROUPS, advanced),
     [quick, advanced],
@@ -134,49 +120,57 @@ export function StaffScreen() {
 
   return (
     <View style={styles.root}>
-      <GlowBackground size={440} centerY={0.02} />
+      <GlowBackground size={460} centerY={0.0} />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <ScreenHeader
-          eyebrow="// Gestión de staff"
-          title="Staff"
-          initials={initials}
-          onNotifications={() => navigation.navigate('Notificaciones')}
-          onProfile={() => navigation.navigate('Perfil')}
-        />
+        <View style={styles.headerWrap}>
+          <GlassScreenHeader
+            title="Staff"
+            initials={initials}
+            onNotifications={() => navigation.navigate('Notificaciones')}
+            onProfile={() => navigation.navigate('Perfil')}
+          />
+        </View>
 
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <SearchField placeholder="Buscar staff..." value={search} onChangeText={setSearch} height={52} />
-          <ControlsRow
+          <GlassSearch placeholder="Buscar staff…" value={search} onChangeText={setSearch} />
+          <GlassToolbar
             sortLabel={SORT_OPTIONS.find(o => o.key === sortBy)?.label ?? 'Nombre'}
             sortValue={SORT_PILL_DIR[sortDir]}
             onSort={() => setSortOpen(true)}
             filtersCount={countSelected(advanced)}
             onFilters={() => setFiltersOpen(true)}
           />
-          <FilterPills options={FILTERS} value={filter} onChange={setFilter} round />
-          <CountRow
-            left={`Mostrando ${filtered.length} de ${staff.length}`}
+          <GlassCountRow
+            count={filtered.length}
+            noun="staff"
             right={`${activos} activos · ${inactivos} ${inactivos === 1 ? 'inactivo' : 'inactivos'}`}
           />
 
           {filtered.length > 0 ? (
             <View style={styles.list}>
-              {filtered.map(m => (
-                <StaffCard key={m.id} member={m} />
-              ))}
+              {filtered.map(m => {
+                const st = STATUS[m.status];
+                return (
+                  <GlassStaffRow
+                    key={m.id}
+                    initials={m.initials}
+                    color={m.color}
+                    name={m.name}
+                    subtitle={m.roles.map(r => r.label).join(' · ')}
+                    statusLabel={st.label}
+                    statusColor={st.color}
+                  />
+                );
+              })}
             </View>
           ) : (
             <View style={styles.empty}>
-              <IconSearch size={32} color={theme.colors.textTertiary} strokeWidth={1.5} />
-              <Txt variant="bodyMedium" color="textSecondary" style={styles.emptyTitle}>
-                Sin resultados
-              </Txt>
-              <Txt variant="caption" color="textTertiary" style={styles.emptyText}>
-                Prueba con otro término o cambia el filtro.
-              </Txt>
+              <IconSearch size={32} color={theme.colors.textOnGlassFaint} strokeWidth={1.5} />
+              <Txt style={styles.emptyTitle}>Sin resultados</Txt>
+              <Txt style={styles.emptyText}>Prueba con otro término o ajusta los filtros.</Txt>
             </View>
           )}
         </ScrollView>
@@ -212,78 +206,25 @@ export function StaffScreen() {
   );
 }
 
-/** Tarjeta de un miembro del staff. */
-function StaffCard({ member }: { member: StaffMember }) {
-  const status = STATUS[member.status];
-  return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Avatar
-          initials={member.initials}
-          color={member.color}
-          size={48}
-          font="body"
-          style={{ borderWidth: 1.5, borderColor: member.color }}
-        />
-        <View style={styles.nameCol}>
-          <Txt style={styles.name} numberOfLines={1}>
-            {member.name}
-          </Txt>
-          <View style={styles.roles}>
-            {member.roles.map(r => (
-              <StatusPill key={r.label} label={r.label} color={r.color} />
-            ))}
-          </View>
-        </View>
-        <StatusPill label={status.label} color={status.color} dot round />
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.footer}>
-        <View style={styles.scope}>
-          <IconCalendar size={13} color={theme.colors.textTertiary} strokeWidth={2} />
-          <Txt style={styles.scopeText} numberOfLines={1}>
-            {member.scope}
-          </Txt>
-        </View>
-        <ActionLink label="Gestionar" />
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgOuter },
+  root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   safe: { flex: 1 },
+  headerWrap: {
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.md,
+  },
   content: {
     paddingHorizontal: theme.spacing['2xl'],
     paddingTop: theme.spacing.sm,
     paddingBottom: 120,
-    gap: theme.spacing.lg,
+    gap: 14,
   },
-  list: { gap: theme.spacing.md },
+  list: { gap: 10 },
 
-  card: {
-    backgroundColor: theme.colors.surface1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.borderDefault,
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
-  },
-  header: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
-  nameCol: { flex: 1, gap: 6 },
-  name: { fontFamily: fonts.label, fontSize: 16, color: theme.colors.textPrimary },
-  roles: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  divider: { height: 1, backgroundColor: theme.colors.borderDefault },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  scope: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm, flex: 1 },
-  scopeText: { fontFamily: fonts.body, fontSize: 12, color: theme.colors.textSecondary },
-
-  empty: { alignItems: 'center', paddingVertical: theme.spacing['4xl'], gap: theme.spacing.sm },
-  emptyTitle: { marginTop: theme.spacing.sm },
-  emptyText: { textAlign: 'center' },
+  empty: { alignItems: 'center', paddingVertical: 56, gap: 8 },
+  emptyTitle: { fontFamily: fonts.glassBodySemibold, fontSize: 15, color: theme.colors.textOnGlass, marginTop: 4 },
+  emptyText: { fontFamily: fonts.glassBodyMedium, fontSize: 13, color: theme.colors.textOnGlassDim, textAlign: 'center' },
 
   fab: { position: 'absolute', right: theme.spacing['2xl'], bottom: theme.spacing['2xl'] },
 });

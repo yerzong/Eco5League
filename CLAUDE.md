@@ -188,13 +188,28 @@ o cambia el rol en Perfil. Los botones sociales (Xbox/Discord) entran como jugad
 `notificationsService`, `eventsService`, `staffService`, `teamsService`,
 `usersService`.
 
+- **Rediseño "glass" de las 5 pantallas principales SA** (Figma "SAN ✦ Pantallas
+  principales (glass)", nodo `586:3719`): Inicio · Eventos · Staff · Equipos ·
+  Usuarios. Todas usan fondo `bgDeep` + `GlowBackground` + `GlassScreenHeader`
+  (título + campana + avatar). Eventos: `GlassSearch` + `GlassToolbar` + secciones
+  (`GlassSectionHeader`) con `GlassEventCard` + FAB. Staff/Equipos/Usuarios:
+  `GlassSearch` + `GlassToolbar` + `GlassCountRow` + lista (`GlassStaffRow` /
+  `GlassTeamRow` / `GlassUserRow`). Orden y filtros siguen funcionando vía
+  `SortSheet`/`FilterSheet` (el toolbar los abre). Las versiones v2 anteriores
+  (ScreenHeader/SearchField/ControlsRow/chips) quedaron reemplazadas.
+
 ### 👉 Dónde nos quedamos (retomar aquí)
 - **Módulo Eventos: COMPLETO** — listado v2, **Crear evento** (wizard 3 pasos +
   éxito animado, subida real de imagen y PDF), **Ver evento** (detalle con 5 tabs:
   Resumen/Equipos/Staff/Brackets/Partidos) y **Editar/Eliminar evento**. La card
   abre Ver evento; desde ahí "Editar" abre el form de edición.
 - **Estados de carga (skeletons)**: `SkeletonList` + `useTabLoading(1s)` en las 4
-  listas SA. **Tab bar animada** (indicador deslizante + transición `shift`).
+  listas SA.
+- **Tab bar "glass" (Figma 580:3366)**: píldora flotante (`AppTabs.tsx`) con fondo
+  translúcido `rgba(20,20,24,0.92)`, borde sutil, sombra y esquinas `26`. Se
+  superpone al contenido (`position:absolute`); activo en `#ff5f73` (Manrope Bold),
+  inactivo `#5b616b`. Sin barra-indicador (no existe en el diseño). Las pantallas
+  dejan `paddingBottom ≥110` para no quedar tapadas.
 - **DEV autologin** como `superadmin` activado en `SessionContext.tsx`
   (`DEV_AUTOLOGIN = true`); ponlo en `false` para volver a exigir login.
 - **Siguiente sugerido**: EV-08/EV-09 (equipos del evento / remover equipo), o
@@ -207,6 +222,11 @@ o cambia el rol en Perfil. Los botones sociales (Xbox/Discord) entran como jugad
   `Avatar` (prop `font`/`solid`), `GameArt`, `Fab`, `BottomSheet`, `StepIndicator`,
   `FormField`/`FormInput`/`FormSelect`/`FormDate`/`CoverUpload`/`PdfUpload`,
   `GradientButton`, `Skeleton`/`SkeletonList`, `DangerConfirm`.
+- **Componentes "glass" (rediseño SA)**: `GlassScreenHeader`, `GlassSectionHeader`,
+  `GlassKpiCard`, `GlassTaskCard`, `GlassEventCard`, `GlassSearch`, `GlassToolbar`,
+  `GlassCountRow`, `GlassStaffRow`, `GlassTeamRow`, `GlassUserRow`. Tokens glass en
+  `colors.ts` (`glassFill`, `glassBorder`, `bgDeep`, `textOnGlass*`…), fuentes
+  Space Grotesk + Manrope (`fonts.glass*`), util `withAlpha` en `colorUtils.ts`.
 - **Deps nativas añadidas** (requieren rebuild, no solo reload): `react-native-image-picker`
   (portada) y `@react-native-documents/picker` (PDF). Para pods: `bundle exec pod
   install` desde `ios/` (CocoaPods 1.15.2 del Gemfile; el `pod` de Homebrew es 1.16.2

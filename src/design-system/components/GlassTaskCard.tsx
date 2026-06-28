@@ -43,7 +43,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    height: 72,
     paddingRight: 14,
     borderRadius: 16,
     backgroundColor: theme.colors.glassFill,
@@ -52,7 +51,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   accent: { width: 4, alignSelf: 'stretch' },
-  body: { flex: 1, gap: 6, paddingVertical: 14 },
+  body: { flex: 1, gap: 6, paddingVertical: 18 },
   chip: {
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
@@ -60,6 +59,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
   },
-  chipText: { fontFamily: fonts.glassBodyBold, fontSize: 9.5, letterSpacing: 0.5 },
+  chipText: { fontFamily: fonts.glassBodyBold, fontSize: 9.5, lineHeight: 12, letterSpacing: 0.5 },
   text: { fontFamily: fonts.glassBodyMedium, fontSize: 13, color: 'rgba(246,246,248,0.85)' },
 });

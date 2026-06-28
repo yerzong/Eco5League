@@ -9,6 +9,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { IconChevronRight } from '@/design-system/icons';
+import { withAlpha } from '@/design-system/colorUtils';
 import { Txt } from './Txt';
 
 interface GlassEventCardProps {
@@ -20,14 +21,14 @@ interface GlassEventCardProps {
   accent?: string;
   statusLabel: string;
   statusColor: string;
+  /** Si se pasa, tinta el logo del cover con este color (status ≠ en_curso). */
+  logoAccent?: string;
+  /** false = badge sin dot (p.ej. FINALIZADO). Default true. */
+  showBadgeDot?: boolean;
   teamsLabel?: string;
   teamsColor?: string;
   dateLabel?: string;
   onPress?: () => void;
-}
-
-function withAlpha(hex: string, alpha: string): string {
-  return hex.length === 7 ? `${hex}${alpha}` : hex;
 }
 
 export function GlassEventCard({
@@ -38,11 +39,18 @@ export function GlassEventCard({
   accent = '#80141f',
   statusLabel,
   statusColor,
+  logoAccent,
+  showBadgeDot = true,
   teamsLabel,
   teamsColor = theme.colors.textOnGlassDim,
   dateLabel,
   onPress,
 }: GlassEventCardProps) {
+  // Logo: tintado por acento cuando se pasa (inscripcion/finalizado), neutro en EN CURSO.
+  const logoBg = logoAccent ? withAlpha(logoAccent, 0.18) : 'rgba(0,0,0,0.32)';
+  const logoBorder = logoAccent ? withAlpha(logoAccent, 0.35) : 'rgba(255,255,255,0.22)';
+  const logoTextColor = logoAccent ?? theme.colors.white;
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {/* Cover */}
@@ -60,11 +68,11 @@ export function GlassEventCard({
           {game.toUpperCase()}
         </Txt>
         <View style={styles.coverTop}>
-          <View style={styles.logo}>
-            <Txt style={styles.logoText}>{code}</Txt>
+          <View style={[styles.logo, { backgroundColor: logoBg, borderColor: logoBorder }]}>
+            <Txt style={[styles.logoText, { color: logoTextColor }]}>{code}</Txt>
           </View>
-          <View style={[styles.badge, { backgroundColor: withAlpha(statusColor, '24'), borderColor: withAlpha(statusColor, '66') }]}>
-            <View style={[styles.badgeDot, { backgroundColor: statusColor }]} />
+          <View style={[styles.badge, { backgroundColor: withAlpha(statusColor, 0.14), borderColor: withAlpha(statusColor, 0.4) }]}>
+            {showBadgeDot && <View style={[styles.badgeDot, { backgroundColor: statusColor }]} />}
             <Txt style={[styles.badgeText, { color: statusColor }]}>{statusLabel.toUpperCase()}</Txt>
           </View>
         </View>
@@ -151,7 +159,7 @@ const styles = StyleSheet.create({
   badgeText: { fontFamily: fonts.glassBodyBold, fontSize: 10.5, letterSpacing: 0.6 },
   body: { padding: 20, gap: 16, backgroundColor: 'rgba(10,10,12,0.5)' },
   titleBlock: { gap: 6 },
-  title: { fontFamily: fonts.glassTitle, fontSize: 24, letterSpacing: -0.3, color: '#f6f6f8' },
+  title: { fontFamily: fonts.glassTitle, fontSize: 24, lineHeight: 30, letterSpacing: -0.3, color: '#f6f6f8' },
   subtitle: { fontFamily: fonts.glassBodyMedium, fontSize: 13, color: theme.colors.textOnGlassDim },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.07)' },
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

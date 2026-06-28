@@ -86,12 +86,7 @@ export function InicioScreen() {
             {chunkPairs(data?.stats ?? []).map((pair, i) => (
               <View key={i} style={styles.kpiRow}>
                 {pair.map(s => (
-                  <GlassKpiCard
-                    key={s.key}
-                    value={s.value}
-                    label={s.label}
-                    color={CAT_COLOR[s.category] ?? '#ff2d46'}
-                  />
+                  <GlassKpiCard key={s.key} value={s.value} label={s.label} color={s.accent} />
                 ))}
                 {pair.length === 1 ? <View style={styles.kpiSpacer} /> : null}
               </View>

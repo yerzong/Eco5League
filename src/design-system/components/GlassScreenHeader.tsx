@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fonts.glassTitle,
     fontSize: 34,
+    lineHeight: 42,
     letterSpacing: -0.5,
     color: '#f6f6f8',
   },

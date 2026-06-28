@@ -1,7 +1,8 @@
 /**
  * Hoja inferior (bottom sheet) con animación de entrada/salida (abajo→arriba)
  * y gesto de deslizar hacia abajo para cerrar.
- * Scrim oscuro (tap para cerrar) + panel anclado abajo con asa, título y ✕.
+ * Usa <Modal> de React Native para renderizar por encima de la tab bar y
+ * cualquier elemento con position:absolute del árbol de navegación.
  */
 import React, {
   forwardRef,
@@ -12,6 +13,7 @@ import React, {
 } from 'react';
 import {
   Animated,
+  Modal,
   PanResponder,
   Pressable,
   ScrollView,
@@ -85,55 +87,62 @@ export const BottomSheet = forwardRef<BottomSheetHandle, BottomSheetProps>(
   ).current;
 
   return (
-    <View style={StyleSheet.absoluteFill}>
-      <Animated.View style={[styles.scrim, { opacity: scrim }]}>
-        <Pressable style={styles.fill} onPress={close} />
-      </Animated.View>
-
-      <View style={styles.anchor} pointerEvents="box-none">
-        <Animated.View
-          style={[styles.sheet, glass && styles.sheetGlass, { transform: [{ translateY }] }]}>
-          {/* Zona de arrastre: asa + encabezado */}
-          <View {...pan.panHandlers}>
-            <View style={[styles.handle, glass && styles.handleGlass]} />
-            {header ? (
-              header
-            ) : (
-              <>
-                <View style={styles.headerRow}>
-                  <View style={styles.titleRow}>
-                    <View style={[styles.bar, glass && styles.barGlass]} />
-                    {glass ? (
-                      <Txt style={styles.titleGlass}>{title}</Txt>
-                    ) : (
-                      <Txt variant="h2">{title}</Txt>
-                    )}
-                  </View>
-                  <Pressable onPress={close} hitSlop={12}>
-                    <IconX size={glass ? 18 : 20} color={theme.colors.textOnGlassDim} strokeWidth={2} />
-                  </Pressable>
-                </View>
-                {subtitle ? (
-                  glass ? (
-                    <Txt style={styles.subtitleGlass}>{subtitle}</Txt>
-                  ) : (
-                    <Txt variant="bodySm" color="textSecondary" style={styles.subtitle}>
-                      {subtitle}
-                    </Txt>
-                  )
-                ) : null}
-              </>
-            )}
-          </View>
-
-          <SafeAreaView edges={['bottom']}>
-            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-              {children}
-            </ScrollView>
-          </SafeAreaView>
+    <Modal
+      visible
+      transparent
+      statusBarTranslucent
+      animationType="none"
+      onRequestClose={close}>
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+        <Animated.View style={[styles.scrim, { opacity: scrim }]}>
+          <Pressable style={styles.fill} onPress={close} />
         </Animated.View>
+
+        <View style={styles.anchor} pointerEvents="box-none">
+          <Animated.View
+            style={[styles.sheet, glass && styles.sheetGlass, { transform: [{ translateY }] }]}>
+            {/* Zona de arrastre: asa + encabezado */}
+            <View {...pan.panHandlers}>
+              <View style={[styles.handle, glass && styles.handleGlass]} />
+              {header ? (
+                header
+              ) : (
+                <>
+                  <View style={styles.headerRow}>
+                    <View style={styles.titleRow}>
+                      <View style={[styles.bar, glass && styles.barGlass]} />
+                      {glass ? (
+                        <Txt style={styles.titleGlass}>{title}</Txt>
+                      ) : (
+                        <Txt variant="h2">{title}</Txt>
+                      )}
+                    </View>
+                    <Pressable onPress={close} hitSlop={12}>
+                      <IconX size={glass ? 18 : 20} color={theme.colors.textOnGlassDim} strokeWidth={2} />
+                    </Pressable>
+                  </View>
+                  {subtitle ? (
+                    glass ? (
+                      <Txt style={styles.subtitleGlass}>{subtitle}</Txt>
+                    ) : (
+                      <Txt variant="bodySm" color="textSecondary" style={styles.subtitle}>
+                        {subtitle}
+                      </Txt>
+                    )
+                  ) : null}
+                </>
+              )}
+            </View>
+
+            <SafeAreaView edges={['bottom']}>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                {children}
+              </ScrollView>
+            </SafeAreaView>
+          </Animated.View>
+        </View>
       </View>
-    </View>
+    </Modal>
   );
 });
 
@@ -145,7 +154,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.62)',
   },
   anchor: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
@@ -159,8 +168,8 @@ const styles = StyleSheet.create({
     maxHeight: '88%',
   },
   sheetGlass: {
-    backgroundColor: 'rgba(18,14,16,0.98)',
-    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#0d0d10',
+    borderColor: 'rgba(255,255,255,0.09)',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
   },
@@ -172,7 +181,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: theme.spacing.lg,
   },
-  handleGlass: { width: 40, backgroundColor: 'rgba(255,255,255,0.25)' },
+  handleGlass: { width: 38, height: 5, backgroundColor: 'rgba(255,255,255,0.18)' },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

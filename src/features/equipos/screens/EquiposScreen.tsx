@@ -1,7 +1,7 @@
 /**
- * SA-M04 · Equipos (gestión) — v2 rediseñado, fiel a Figma.
- * Header fijo (con total) + búsqueda + fila de controles (orden + filtros) +
- * chips + fila de conteo + lista de tarjetas de equipo. Funcional + vacío.
+ * SAN ✦ Equipos (gestión) — rediseño "glass", fiel a Figma (584:3487).
+ * Header + búsqueda + toolbar (orden + filtros) + conteo + lista de filas glass.
+ * Orden y filtros funcionales (sheets).
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -10,22 +10,18 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Txt,
   GlowBackground,
-  ScreenHeader,
-  SearchField,
-  ControlsRow,
-  CountRow,
-  FilterPills,
-  StatusPill,
-  ActionLink,
+  GlassScreenHeader,
+  GlassSearch,
+  GlassToolbar,
+  GlassCountRow,
+  GlassTeamRow,
   FilterSheet,
   SortSheet,
-  Fab,
   SkeletonList,
-  type FilterOption,
   type SortOption,
 } from '@/design-system/components';
 import { useTabLoading } from '@/shared/hooks/useTabLoading';
-import { IconUsers, IconSearch } from '@/design-system/icons';
+import { IconSearch } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { useSession } from '@/shared/auth/SessionContext';
@@ -36,19 +32,24 @@ import {
   type FilterSelection,
 } from '@/shared/filters';
 import { teamsService, type Team } from '@/services';
-import { filterTeams, type TeamFilterKey } from '../teamFilters';
+import { filterTeams } from '../teamFilters';
 
-const FILTERS: FilterOption<TeamFilterKey>[] = [{ key: 'todos', label: 'Todos' }];
-
-const STATUS = {
-  activo: { label: 'Activo', color: theme.colors.accentGreen },
-  pendiente: { label: 'Pendiente', color: theme.colors.accentAmber },
+/** Estado → color (glass). */
+const STATUS_COLOR = {
+  activo: '#34d77f',
+  pendiente: '#f6a623',
 } as const;
 
 /** ¿El roster está completo? ("4 / 4 jugadores" → 4 === 4). */
 function isFullRoster(t: Team): boolean {
   const [a, b] = t.playersLabel.split('/').map(s => parseInt(s.trim(), 10));
   return Number.isFinite(a) && a === b;
+}
+
+/** Roster compacto para el subtítulo (ej. "4 / 4 jugadores" → "4/4"). */
+function rosterShort(playersLabel: string): string {
+  const [a, b] = playersLabel.split('/').map(s => parseInt(s.trim(), 10));
+  return Number.isFinite(a) && Number.isFinite(b) ? `${a}/${b} roster` : playersLabel;
 }
 
 const FILTER_GROUPS: FilterGroupDef<Team>[] = [
@@ -92,9 +93,7 @@ export function EquiposScreen() {
   const navigation = useNavigation<any>();
   const { initials } = useSession();
   const [teams, setTeams] = useState<Team[]>([]);
-  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<TeamFilterKey>('todos');
   const [advanced, setAdvanced] = useState<FilterSelection>({});
   const [sortBy, setSortBy] = useState('nombre');
   const [sortDir, setSortDir] = useState<0 | 1>(0);
@@ -104,13 +103,9 @@ export function EquiposScreen() {
 
   useEffect(() => {
     teamsService.getTeams().then(setTeams);
-    teamsService.getRegisteredCount().then(setTotal);
   }, []);
 
-  const quick = useMemo(
-    () => filterTeams(teams, search, filter),
-    [teams, search, filter],
-  );
+  const quick = useMemo(() => filterTeams(teams, search, 'todos'), [teams, search]);
   const base = useMemo(
     () => applyFilterGroups(quick, FILTER_GROUPS, advanced),
     [quick, advanced],
@@ -128,56 +123,57 @@ export function EquiposScreen() {
 
   return (
     <View style={styles.root}>
-      <GlowBackground size={440} centerY={0.02} />
+      <GlowBackground size={460} centerY={0.0} />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <ScreenHeader
-          eyebrow="// Gestión de equipos"
-          title="Equipos"
-          meta={total ? `${total} registrados` : undefined}
-          initials={initials}
-          onNotifications={() => navigation.navigate('Notificaciones')}
-          onProfile={() => navigation.navigate('Perfil')}
-        />
+        <View style={styles.headerWrap}>
+          <GlassScreenHeader
+            title="Equipos"
+            initials={initials}
+            onNotifications={() => navigation.navigate('Notificaciones')}
+            onProfile={() => navigation.navigate('Perfil')}
+          />
+        </View>
 
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <SearchField placeholder="Buscar equipo..." value={search} onChangeText={setSearch} height={52} />
-          <ControlsRow
+          <GlassSearch placeholder="Buscar equipo u organización…" value={search} onChangeText={setSearch} />
+          <GlassToolbar
             sortLabel={SORT_OPTIONS.find(o => o.key === sortBy)?.label ?? 'Nombre'}
             sortValue={SORT_PILL_DIR[sortDir]}
             onSort={() => setSortOpen(true)}
             filtersCount={countSelected(advanced)}
             onFilters={() => setFiltersOpen(true)}
           />
-          <FilterPills options={FILTERS} value={filter} onChange={setFilter} round />
-          <CountRow
-            left={`Mostrando ${filtered.length} de ${total || filtered.length}`}
+          <GlassCountRow
+            count={filtered.length}
+            noun="equipos"
             right={`${activos} activos · ${pendientes} ${pendientes === 1 ? 'pendiente' : 'pendientes'}`}
           />
 
           {filtered.length > 0 ? (
             <View style={styles.list}>
               {filtered.map(t => (
-                <TeamCard key={t.id} team={t} />
+                <GlassTeamRow
+                  key={t.id}
+                  initials={t.initials}
+                  color={theme.colors.redSoft}
+                  name={t.name}
+                  subtitle={`${t.org} · ${rosterShort(t.playersLabel)}`}
+                  statusColor={STATUS_COLOR[t.status]}
+                />
               ))}
             </View>
           ) : (
             <View style={styles.empty}>
-              <IconSearch size={32} color={theme.colors.textTertiary} strokeWidth={1.5} />
-              <Txt variant="bodyMedium" color="textSecondary" style={styles.emptyTitle}>
-                Sin resultados
-              </Txt>
-              <Txt variant="caption" color="textTertiary" style={styles.emptyText}>
-                Prueba con otro término o cambia el filtro.
-              </Txt>
+              <IconSearch size={32} color={theme.colors.textOnGlassFaint} strokeWidth={1.5} />
+              <Txt style={styles.emptyTitle}>Sin resultados</Txt>
+              <Txt style={styles.emptyText}>Prueba con otro término o ajusta los filtros.</Txt>
             </View>
           )}
         </ScrollView>
       </SafeAreaView>
-
-      <Fab style={styles.fab} onPress={() => {}} />
 
       {filtersOpen ? (
         <FilterSheet
@@ -207,89 +203,23 @@ export function EquiposScreen() {
   );
 }
 
-/** Tarjeta de un equipo. */
-function TeamCard({ team }: { team: Team }) {
-  const status = STATUS[team.status];
-  return (
-    <View style={styles.card}>
-      <View style={[styles.accent, { backgroundColor: status.color }]} />
-      <View style={styles.cardBody}>
-        <View style={styles.header}>
-          <View style={styles.crest}>
-            <Txt style={styles.crestText}>{team.initials}</Txt>
-          </View>
-          <View style={styles.nameCol}>
-            <Txt style={styles.name} numberOfLines={1}>
-              {team.name}
-            </Txt>
-            <Txt style={styles.org} numberOfLines={1}>
-              {team.org}
-            </Txt>
-          </View>
-          <StatusPill label={status.label} color={status.color} dot round />
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.footer}>
-          <View style={styles.players}>
-            <IconUsers size={14} color={status.color} strokeWidth={2} />
-            <Txt style={[styles.playersText, { color: status.color }]}>
-              {team.playersLabel}
-            </Txt>
-          </View>
-          <ActionLink label="Ver equipo" />
-        </View>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgOuter },
+  root: { flex: 1, backgroundColor: theme.colors.bgDeep },
   safe: { flex: 1 },
+  headerWrap: {
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.md,
+  },
   content: {
     paddingHorizontal: theme.spacing['2xl'],
     paddingTop: theme.spacing.sm,
     paddingBottom: 120,
-    gap: theme.spacing.lg,
+    gap: 14,
   },
-  list: { gap: theme.spacing.md },
+  list: { gap: 10 },
 
-  card: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    backgroundColor: theme.colors.surface1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.borderDefault,
-    overflow: 'hidden',
-  },
-  accent: { width: 4 },
-  cardBody: { flex: 1, padding: theme.spacing.lg, gap: theme.spacing.md },
-  header: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
-  crest: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surfacePill,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderDefault,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  crestText: { fontFamily: fonts.headingBold, fontSize: 16, color: theme.colors.textSecondary },
-  nameCol: { flex: 1, gap: 2 },
-  name: { fontFamily: fonts.headingBold, fontSize: 18, letterSpacing: 0.18, color: theme.colors.textPrimary },
-  org: { fontFamily: fonts.body, fontSize: 13, color: theme.colors.textSecondary },
-  divider: { height: 1, backgroundColor: theme.colors.borderDefault },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  players: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
-  playersText: { fontFamily: fonts.label, fontSize: 13 },
-
-  empty: { alignItems: 'center', paddingVertical: theme.spacing['4xl'], gap: theme.spacing.sm },
-  emptyTitle: { marginTop: theme.spacing.sm },
-  emptyText: { textAlign: 'center' },
-
-  fab: { position: 'absolute', right: theme.spacing['2xl'], bottom: theme.spacing['2xl'] },
+  empty: { alignItems: 'center', paddingVertical: 56, gap: 8 },
+  emptyTitle: { fontFamily: fonts.glassBodySemibold, fontSize: 15, color: theme.colors.textOnGlass, marginTop: 4 },
+  emptyText: { fontFamily: fonts.glassBodyMedium, fontSize: 13, color: theme.colors.textOnGlassDim, textAlign: 'center' },
 });

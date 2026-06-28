@@ -8,29 +8,29 @@ export class MockDashboardService implements DashboardService {
   async getOverview(): Promise<DashboardData> {
     return {
       stats: [
-        { key: 'eventos', value: 3, label: 'Eventos activos', category: 'resultado' },
-        { key: 'equipos', value: 24, label: 'Equipos registrados', category: 'transferencia' },
-        { key: 'staff', value: 12, label: 'Staff activo', category: 'inscripcion' },
-        { key: 'inscripciones', value: 7, label: 'Inscripciones pend.', category: 'resultado' },
+        { key: 'eventos', value: 3, label: 'Eventos activos', accent: '#ff2d46' },
+        { key: 'inscripciones', value: 7, label: 'Inscrip. pendientes', accent: '#f6a623' },
+        { key: 'equipos', value: 24, label: 'Equipos', accent: '#2e8fd6' },
+        { key: 'staff', value: 12, label: 'Staff activo', accent: '#34d77f' },
       ],
       tasks: [
         {
           id: 't1',
           category: 'transferencia',
           tagLabel: 'Transferencia',
-          text: '@player_x → Red Gaming · revisar',
+          text: 'Aprobar transferencia · NightWolves',
         },
         {
           id: 't2',
           category: 'inscripcion',
           tagLabel: 'Inscripción',
-          text: 'NightWolves esperan aprobación · Torneo #4',
+          text: 'Revisar inscripción · Phoenix X',
         },
         {
           id: 't3',
           category: 'resultado',
           tagLabel: 'Resultado',
-          text: 'QF-03 sin reportar · árbitros alertados',
+          text: 'Fijar resultado · J2 · Grupo A',
         },
       ],
       activity: [

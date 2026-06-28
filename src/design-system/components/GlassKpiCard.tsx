@@ -6,6 +6,7 @@ import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
+import { withAlpha } from '@/design-system/colorUtils';
 import { Txt } from './Txt';
 
 interface GlassKpiCardProps {
@@ -16,18 +17,13 @@ interface GlassKpiCardProps {
   style?: ViewStyle;
 }
 
-/** Agrega alpha (hex 2 díg.) a un color hex de 6 díg. */
-function withAlpha(hex: string, alpha: string): string {
-  return hex.length === 7 ? `${hex}${alpha}` : hex;
-}
-
 export function GlassKpiCard({ value, label, color, style }: GlassKpiCardProps) {
   return (
     <View style={[styles.card, style]}>
-      <View style={[styles.accent, { backgroundColor: withAlpha(color, '24'), borderColor: withAlpha(color, '4d') }]}>
+      <View style={[styles.accent, { backgroundColor: withAlpha(color, 0.2), borderColor: withAlpha(color, 0.55) }]}>
         <View style={[styles.dot, { backgroundColor: color }]} />
       </View>
-      <View>
+      <View style={styles.textBlock}>
         <Txt style={styles.value}>{value}</Txt>
         <Txt style={styles.label}>{label}</Txt>
       </View>
@@ -45,6 +41,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
     borderColor: theme.colors.glassBorder,
+    // Acento arriba, bloque número+etiqueta abajo (fiel a Figma 576:3271).
     justifyContent: 'space-between',
   },
   accent: {
@@ -55,7 +52,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dot: { width: 9, height: 9, borderRadius: 5 },
-  value: { fontFamily: fonts.glassTitle, fontSize: 28, color: '#f6f6f8' },
-  label: { fontFamily: fonts.glassBodyMedium, fontSize: 12, color: theme.colors.textOnGlassDim, marginTop: 2 },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  textBlock: { gap: 2 },
+  value: { fontFamily: fonts.glassTitle, fontSize: 28, lineHeight: 36, color: '#f6f6f8' },
+  label: { fontFamily: fonts.glassBodyMedium, fontSize: 12, color: theme.colors.textOnGlassDim },
 });

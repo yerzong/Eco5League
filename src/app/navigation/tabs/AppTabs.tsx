@@ -1,15 +1,18 @@
 /**
- * Tab bar inferior. Las pestañas se generan dinámicamente según el rol
- * de la sesión (hoja "Tab bar por rol"). Pestaña activa en rojo de marca.
+ * Tab bar inferior (rediseño "glass", fiel a Figma 580:3366). Las pestañas se
+ * generan dinámicamente según el rol de la sesión (hoja "Tab bar por rol").
  *
- * Usa una tab bar PERSONALIZADA con un indicador rojo que se desliza (spring)
- * a la pestaña activa y un leve rebote del ícono activo.
+ * Es una PÍLDORA FLOTANTE de vidrio (rounded 26, fondo translúcido, borde
+ * sutil y sombra) que se superpone al contenido. La pestaña activa va en rojo
+ * (Manrope Bold) y las inactivas en gris (Manrope SemiBold); el ícono activo
+ * tiene un leve rebote (spring). Sin barra-indicador (no existe en el diseño).
  *
  * Como las pestañas cambian por rol, usamos `key={role}` para forzar el
  * remontaje del navegador cuando el rol cambia (selector demo en Perfil).
  */
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   createBottomTabNavigator,
@@ -38,7 +41,9 @@ import { TAB_SCREENS } from './tabScreens';
 
 const Tab = createBottomTabNavigator();
 
-const INDICATOR_W = 28;
+/** Colores del navbar glass (fieles a Figma). */
+const ACTIVE_COLOR = '#ff5f73';
+const INACTIVE_COLOR = '#5b616b';
 
 /** TabKey → ícono Tabler. */
 const TAB_ICONS: Record<TabKey, React.ComponentType<IconProps>> = {
@@ -66,67 +71,64 @@ function TabIcon({ Icon, focused, color }: { Icon: React.ComponentType<IconProps
       useNativeDriver: true,
     }).start();
   }, [focused, scale]);
-  const s = scale.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
+  const s = scale.interpolate({ inputRange: [0, 1], outputRange: [1, 1.1] });
   return (
     <Animated.View style={{ transform: [{ scale: s }] }}>
-      <Icon size={24} color={color} strokeWidth={1.9} />
+      <Icon size={22} color={color} strokeWidth={focused ? 2.2 : 1.9} />
     </Animated.View>
   );
 }
 
-/** Tab bar personalizada con indicador deslizante. */
+/** Tab bar personalizada: píldora flotante de vidrio (sin indicador). */
 function AppTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const [width, setWidth] = useState(0);
-  const count = state.routes.length;
-  const tabW = width > 0 ? width / count : 0;
-
-  const indicator = useRef(new Animated.Value(state.index)).current;
-  useEffect(() => {
-    Animated.spring(indicator, {
-      toValue: state.index,
-      friction: 14,
-      tension: 140,
-      useNativeDriver: true,
-    }).start();
-  }, [state.index, indicator]);
-
-  const translateX =
-    count > 1 && tabW > 0
-      ? indicator.interpolate({
-          inputRange: state.routes.map((_, i) => i),
-          outputRange: state.routes.map((_, i) => i * tabW + (tabW - INDICATOR_W) / 2),
-        })
-      : (tabW - INDICATOR_W) / 2;
 
   return (
     <View
-      style={[styles.bar, { paddingBottom: insets.bottom }]}
-      onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}>
-      {tabW > 0 ? (
-        <Animated.View style={[styles.indicator, { transform: [{ translateX }] }]} />
-      ) : null}
+      style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 8) }]}
+      pointerEvents="box-none">
+      {/* Contenedor de la píldora: borde + sombra + overflow:hidden para el blur. */}
+      <View style={styles.pillContainer}>
+        {/* Capa de blur (backdrop-blur-[14px] de Figma). */}
+        <BlurView
+          style={StyleSheet.absoluteFill}
+          blurType="dark"
+          blurAmount={14}
+          reducedTransparencyFallbackColor="rgba(20,20,24,0.92)"
+        />
+        {/* Tinte de color encima del blur (rgba(20,20,24,0.55) de Figma). */}
+        <View style={styles.pillTint} />
+        {/* Highlight interior superior (inset 1px de Figma). */}
+        <View style={styles.innerHighlight} pointerEvents="none" />
 
-      <View style={styles.row}>
-        {state.routes.map((route, i) => {
-          const focused = state.index === i;
-          const color = focused ? theme.colors.brandRedHover : theme.colors.textTertiary;
-          const key = route.name as TabKey;
-          const Icon = TAB_ICONS[key] ?? IconHome;
-          const label = TAB_DEFS[key]?.label ?? route.name;
+        {/* Items de las pestañas. */}
+        <View style={styles.pillRow}>
+          {state.routes.map((route, i) => {
+            const focused = state.index === i;
+            const color = focused ? ACTIVE_COLOR : INACTIVE_COLOR;
+            const key = route.name as TabKey;
+            const Icon = TAB_ICONS[key] ?? IconHome;
+            const label = TAB_DEFS[key]?.label ?? route.name;
 
-          const onPress = () => {
-            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
-          };
+            const onPress = () => {
+              const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+              if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
+            };
 
-          return (
-            <Pressable key={route.key} style={styles.item} onPress={onPress}>
-              <TabIcon Icon={Icon} focused={focused} color={color} />
-              <Txt style={[styles.label, { color }]}>{label}</Txt>
-            </Pressable>
-          );
-        })}
+            return (
+              <Pressable key={route.key} style={styles.item} onPress={onPress} hitSlop={6}>
+                <TabIcon Icon={Icon} focused={focused} color={color} />
+                <Txt
+                  style={[
+                    styles.label,
+                    { color, fontFamily: focused ? fonts.glassBodyBold : fonts.glassBodySemibold },
+                  ]}>
+                  {label}
+                </Txt>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -153,21 +155,50 @@ export function AppTabs() {
 }
 
 const styles = StyleSheet.create({
-  bar: {
-    backgroundColor: theme.colors.navBar,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.borderDefault,
+  // Contenedor flotante: sin fondo, deja pasar los toques fuera de la píldora.
+  wrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
-  indicator: {
+  // Contenedor externo: borde, sombra, overflow:hidden (necesario para que el
+  // BlurView quede recortado al borderRadius del pill).
+  pillContainer: {
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOpacity: 0.9,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 18 },
+    elevation: 24,
+    overflow: 'hidden',
+  },
+  // Tinte de color sobre el blur (rgba(20,20,24,0.55) de Figma 580:3366).
+  pillTint: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(20,20,24,0.40)',
+  },
+  // Highlight de 1px en el borde superior — simula el inset shadow de Figma.
+  innerHighlight: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: INDICATOR_W,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: theme.colors.brandRed,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
-  row: { flexDirection: 'row', height: 80, paddingTop: 12, paddingBottom: 10 },
-  item: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 6 },
-  label: { fontFamily: fonts.label, fontSize: 10, letterSpacing: 0.1 },
+  // Fila real de items (encima de todas las capas de fondo).
+  pillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+  },
+  item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 5 },
+  label: { fontSize: 10, lineHeight: 13, letterSpacing: 0.1 },
 });
