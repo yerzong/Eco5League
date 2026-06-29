@@ -16,7 +16,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { launchImageLibrary, type Asset } from 'react-native-image-picker';
 import { Txt, GlowBackground, PdfUpload, type PdfFile } from '@/design-system/components';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -600,6 +600,34 @@ export function CrearEventoModal({
   );
 }
 
+// ─── SuccessGlow — réplica del nodo 624:4552 (left -40, top -160, 470×360) ──
+
+function SuccessGlow() {
+  return (
+    <View style={sg.wrap} pointerEvents="none">
+      <Svg width="100%" height="100%">
+        <Defs>
+          <RadialGradient
+            id="sucGlowRed"
+            gradientUnits="userSpaceOnUse"
+            cx="195"
+            cy="20"
+            r="280">
+            <Stop offset="0"    stopColor="#c0152a" stopOpacity={0.72} />
+            <Stop offset="0.5"  stopColor="#8a0d1c" stopOpacity={0.22} />
+            <Stop offset="1"    stopColor="#060608" stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#sucGlowRed)" />
+      </Svg>
+    </View>
+  );
+}
+
+const sg = StyleSheet.create({
+  wrap: { position: 'absolute', top: -160, left: -40, width: 470, height: 360 },
+});
+
 // ─── Pantalla de éxito ────────────────────────────────────────────────────────
 
 function SuccessView({
@@ -634,7 +662,8 @@ function SuccessView({
 
   return (
     <View style={gs.root}>
-      <GlowBackground size={460} centerY={-0.05} />
+      {/* Glow rojo arriba-izquierda — Figma: left -40, top -160, 470×360 */}
+      <SuccessGlow />
       <SafeAreaView style={gs.flex} edges={['top', 'bottom']}>
         <ScrollView
           contentContainerStyle={gs.successContent}
