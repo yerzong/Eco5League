@@ -636,18 +636,27 @@ function SuccessView({
     <View style={gs.root}>
       <GlowBackground size={460} centerY={-0.05} />
       <SafeAreaView style={gs.flex} edges={['top', 'bottom']}>
-        <ScrollView contentContainerStyle={gs.successContent} showsVerticalScrollIndicator={false}>
-          <View style={gs.checkWrap}>
+        <ScrollView
+          contentContainerStyle={gs.successContent}
+          showsVerticalScrollIndicator={false}>
+
+          {/* Check animado */}
+          <Animated.View style={[gs.checkWrap, { opacity: checkAnim, transform: [{ scale: checkAnim }] }]}>
             <Animated.View style={[gs.ring, { opacity: ringOpacity, transform: [{ scale: ringScale }] }]} />
-            <Animated.View style={[gs.check, { opacity: checkAnim, transform: [{ scale: checkAnim }] }]}>
+            <View style={gs.check}>
               <IconCheck size={34} color="#34d77f" strokeWidth={2.5} />
-            </Animated.View>
-          </View>
+            </View>
+          </Animated.View>
 
+          {/* Todo el resto fade+slide */}
           <Animated.View style={[gs.successBody, { opacity: contentAnim, transform: [{ translateY: contentY }] }]}>
-            <Txt style={gs.successTitle}>¡Evento creado!</Txt>
-            <Txt style={gs.successDesc}>{nombre} ya está publicada y visible para los equipos.</Txt>
 
+            <Txt style={gs.successTitle}>¡Evento creado!</Txt>
+            <Txt style={gs.successDesc}>
+              {nombre} ya está publicada y visible para los equipos.
+            </Txt>
+
+            {/* Tarjeta resumen — Figma: backdrop-blur bg 5% border 9% radius 18 p18 gap12 */}
             <View style={gs.summaryCard}>
               <SummaryRow label="Tipo" value={`${tipo} · 4v4`} />
               <SummaryRow label="Formato" value={formato} />
@@ -656,11 +665,30 @@ function SuccessView({
               <SummaryRow label="Visibilidad" value={visLabel} />
             </View>
 
+            {/* Acciones — full width, Figma: gap 10, paddingTop 8 */}
             <View style={gs.successActions}>
-              <PrimaryButton label="Ver evento" onPress={() => {}} />
-              <Pressable style={gs.secondaryBtn} onPress={() => {}}>
-                <Txt style={gs.secondaryLabel}>Compartir enlace</Txt>
+              {/* Ver evento — gradiente rojo */}
+              <Pressable
+                style={({ pressed }) => [gs.sucPrimaryBtn, pressed && gs.pressed]}
+                onPress={() => {}}>
+                <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+                  <Defs>
+                    <LinearGradient id="sucBtnGrad" x1="0" y1="0" x2="0" y2="1">
+                      <Stop offset="0" stopColor="#ff3b52" />
+                      <Stop offset="1" stopColor="#e11d36" />
+                    </LinearGradient>
+                  </Defs>
+                  <Rect x="0" y="0" width="100%" height="100%" rx={16} fill="url(#sucBtnGrad)" />
+                </Svg>
+                <Txt style={gs.sucBtnLabel}>Ver evento</Txt>
               </Pressable>
+
+              {/* Compartir enlace — glass */}
+              <Pressable style={gs.sucSecondaryBtn} onPress={() => {}}>
+                <Txt style={gs.sucBtnLabel}>Compartir enlace</Txt>
+              </Pressable>
+
+              {/* Crear otro evento — texto */}
               <Pressable hitSlop={12} onPress={onClose}>
                 <Txt style={gs.createAnotherLink}>Crear otro evento</Txt>
               </Pressable>
@@ -932,10 +960,21 @@ const gs = StyleSheet.create({
   pressed: { opacity: 0.88 },
   primaryLabel: { fontFamily: fonts.glassBodyBold, fontSize: 15, color: '#ffffff', letterSpacing: 0.3 },
 
-  // Success
-  successContent: { paddingHorizontal: 24, paddingTop: 70, paddingBottom: 40, alignItems: 'center', gap: 18 },
+  // ── Success ──
+  // paddingTop 70, gap 18 entre todos los elementos (Figma 624:4551)
+  successContent: {
+    paddingHorizontal: 24,
+    paddingTop: 70,
+    paddingBottom: 40,
+    alignItems: 'center',
+    gap: 18,
+  },
   checkWrap: { alignItems: 'center', justifyContent: 'center' },
-  ring: { position: 'absolute', width: 76, height: 76, borderRadius: 38, borderWidth: 1.5, borderColor: '#34d77f' },
+  ring: {
+    position: 'absolute',
+    width: 76, height: 76, borderRadius: 38,
+    borderWidth: 1.5, borderColor: '#34d77f',
+  },
   check: {
     width: 76, height: 76, borderRadius: 38,
     backgroundColor: 'rgba(52,215,127,0.14)',
@@ -944,18 +983,90 @@ const gs = StyleSheet.create({
     shadowColor: '#34d77f', shadowOpacity: 0.4, shadowRadius: 24,
     shadowOffset: { width: 0, height: 0 },
   },
-  successBody: { width: '100%', alignItems: 'center', gap: 8 },
-  successTitle: { fontFamily: fonts.glassTitle, fontSize: 26, letterSpacing: -0.3, color: '#f6f6f8', marginTop: 10 },
-  successDesc: { fontFamily: fonts.glassBodyMedium, fontSize: 14, color: 'rgba(246,246,248,0.55)', textAlign: 'center', lineHeight: 20 },
+  // successBody hereda gap:18 del contenedor padre (successContent)
+  successBody: { width: '100%', alignItems: 'center', gap: 18 },
+  successTitle: {
+    fontFamily: fonts.glassTitle,
+    fontSize: 26,
+    letterSpacing: -0.3,
+    color: '#f6f6f8',
+  },
+  successDesc: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 14,
+    color: 'rgba(246,246,248,0.55)',
+    textAlign: 'center',
+    lineHeight: 21,
+  },
   summaryCard: {
     width: '100%',
     backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
-    borderRadius: 18, padding: 18, gap: 12, marginTop: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.09)',
+    borderRadius: 18,
+    padding: 18,
+    gap: 12,
   },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  summaryLabel: { fontFamily: fonts.glassBodyMedium, fontSize: 13, color: 'rgba(246,246,248,0.5)' },
-  summaryValue: { fontFamily: fonts.glassBodyBold, fontSize: 13, color: '#f6f6f8', textAlign: 'right', flex: 1, marginLeft: 12 },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 13,
+    color: 'rgba(246,246,248,0.5)',
+  },
+  summaryValue: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 13,
+    color: '#f6f6f8',
+    textAlign: 'right',
+    flex: 1,
+    marginLeft: 12,
+  },
+  // Acciones de éxito — gap 10 + paddingTop 8 (Figma)
   successActions: { width: '100%', gap: 10, paddingTop: 8 },
-  createAnotherLink: { fontFamily: fonts.glassBodyBold, fontSize: 15, color: '#ff5f73', letterSpacing: 0.3, textAlign: 'center', paddingVertical: 15 },
+
+  // Botón primario de éxito — ancho completo (no flex:1 de footer)
+  sucPrimaryBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    shadowColor: '#ff2d46',
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  // Botón secundario de éxito — ancho completo
+  sucSecondaryBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.13)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sucBtnLabel: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 15,
+    color: '#ffffff',
+    letterSpacing: 0.3,
+  },
+  createAnotherLink: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 15,
+    color: '#ff5f73',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    paddingVertical: 15,
+  },
 });
