@@ -744,7 +744,7 @@ const FIELD_BOX_BG = 'rgba(255,255,255,0.05)';
 const FIELD_BOX_BORDER = 'rgba(255,255,255,0.10)';
 
 const gs = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgDeep },
+  root: { flex: 1, backgroundColor: theme.colors.bgDeep, overflow: 'hidden' },
   flex: { flex: 1 },
 
   // Scroll
