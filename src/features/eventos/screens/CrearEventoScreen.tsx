@@ -220,11 +220,25 @@ function GlassDateInput({
 }) {
   const [open, setOpen] = useState(false);
   const [temp, setTemp] = useState(new Date(2026, 0, 15));
+  const translateY = useRef(new Animated.Value(600)).current;
+  const scrimAnim  = useRef(new Animated.Value(0)).current;
 
-  const confirm = () => {
-    onChange(dateToStr(temp));
-    setOpen(false);
+  const openSheet = () => {
+    setOpen(true);
+    Animated.parallel([
+      Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 2 }),
+      Animated.timing(scrimAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+    ]).start();
   };
+
+  const closeSheet = (cb?: () => void) => {
+    Animated.parallel([
+      Animated.timing(translateY, { toValue: 600, duration: 220, useNativeDriver: true }),
+      Animated.timing(scrimAnim, { toValue: 0, duration: 220, useNativeDriver: true }),
+    ]).start(() => { setOpen(false); cb?.(); });
+  };
+
+  const confirm = () => closeSheet(() => onChange(dateToStr(temp)));
 
   return (
     <View style={[gs.field, flex && gs.flex]}>
@@ -239,7 +253,7 @@ function GlassDateInput({
           maxLength={10}
           style={gs.dateInput}
         />
-        <Pressable onPress={() => setOpen(true)} hitSlop={12}>
+        <Pressable onPress={openSheet} hitSlop={12}>
           <IconCalendar size={18} color="rgba(246,246,248,0.55)" strokeWidth={2} />
         </Pressable>
       </View>
@@ -247,29 +261,38 @@ function GlassDateInput({
       <Modal
         visible={open}
         transparent
-        animationType="slide"
+        animationType="none"
         statusBarTranslucent
-        onRequestClose={() => setOpen(false)}>
-        <Pressable style={gs.dateScrim} onPress={() => setOpen(false)} />
-        <View style={gs.dateSheet}>
-          <View style={gs.dateSheetHeader}>
-            <Pressable onPress={() => setOpen(false)} hitSlop={8}>
-              <Txt style={gs.dateSheetCancel}>Cancelar</Txt>
-            </Pressable>
-            <Txt style={gs.dateSheetTitle}>{label}</Txt>
-            <Pressable onPress={confirm} hitSlop={8}>
-              <Txt style={gs.dateSheetOk}>Listo</Txt>
-            </Pressable>
-          </View>
-          <DateTimePicker
-            value={temp}
-            mode="date"
-            display="inline"
-            themeVariant="dark"
-            accentColor="#ff2d46"
-            onChange={(_, d) => d && setTemp(d)}
-            style={gs.datePicker}
-          />
+        onRequestClose={() => closeSheet()}>
+        {/* Scrim fade — ocupa toda la pantalla detrás del sheet */}
+        <Animated.View
+          style={[StyleSheet.absoluteFill, gs.dateScrim, { opacity: scrimAnim }]}
+          pointerEvents="box-none">
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => closeSheet()} />
+        </Animated.View>
+
+        {/* Sheet slide — solo sube el panel */}
+        <View style={gs.dateAnchor} pointerEvents="box-none">
+          <Animated.View style={[gs.dateSheet, { transform: [{ translateY }] }]}>
+            <View style={gs.dateSheetHeader}>
+              <Pressable onPress={() => closeSheet()} hitSlop={8}>
+                <Txt style={gs.dateSheetCancel}>Cancelar</Txt>
+              </Pressable>
+              <Txt style={gs.dateSheetTitle}>{label}</Txt>
+              <Pressable onPress={confirm} hitSlop={8}>
+                <Txt style={gs.dateSheetOk}>Listo</Txt>
+              </Pressable>
+            </View>
+            <DateTimePicker
+              value={temp}
+              mode="date"
+              display="inline"
+              themeVariant="dark"
+              accentColor="#ff2d46"
+              onChange={(_, d) => d && setTemp(d)}
+              style={gs.datePicker}
+            />
+          </Animated.View>
         </View>
       </Modal>
     </View>
@@ -830,7 +853,15 @@ const gs = StyleSheet.create({
     padding: 0,
     margin: 0,
   },
-  dateScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.62)' },
+  dateScrim: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.62)',
+  },
+  dateAnchor: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   dateSheet: {
     backgroundColor: '#0d0d10',
     borderTopLeftRadius: 28,
