@@ -19,7 +19,8 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { launchImageLibrary, type Asset } from 'react-native-image-picker';
 import { Txt, GlowBackground, PdfUpload, type PdfFile } from '@/design-system/components';
-import { IconChevronLeft, IconCheck, IconChevronDown, IconX } from '@/design-system/icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { IconChevronLeft, IconCheck, IconChevronDown, IconX, IconCalendar } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import {
@@ -35,10 +36,21 @@ const STEP_LABELS = ['Identidad', 'Formato & Roster', 'Fechas & Publicación'];
 
 const SLOTS_OPTS = ['L–V 18:00 · S–D 10:00 AM', 'L–V 20:00 · S–D mañana', 'S–D todo el día'];
 const IDIOMA_OPTS = ['Español', 'Inglés', 'Español / Inglés'];
-const DATE_APERTURA = ['15 ene 2026', '01 feb 2026', '15 feb 2026', '01 mar 2026'];
-const DATE_CIERRE   = ['28 ene 2026', '15 feb 2026', '28 feb 2026', '15 mar 2026'];
-const DATE_INICIO   = ['01 feb 2026', '15 feb 2026', '01 mar 2026', '15 mar 2026'];
-const DATE_FIN      = ['30 mar 2026', '30 abr 2026', '30 may 2026', '30 jun 2026'];
+
+/** Máscara DD/MM/YYYY para el campo de fecha. */
+function maskDate(raw: string): string {
+  const d = raw.replace(/\D/g, '').slice(0, 8);
+  let r = d.slice(0, 2);
+  if (d.length > 2) r += '/' + d.slice(2, 4);
+  if (d.length > 4) r += '/' + d.slice(4);
+  return r;
+}
+
+function dateToStr(d: Date): string {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
 
 // ─── GlassSelect ─────────────────────────────────────────────────────────────
 
@@ -193,6 +205,77 @@ function GlassSegmented({
   );
 }
 
+// ─── GlassDateInput ──────────────────────────────────────────────────────────
+
+function GlassDateInput({
+  label,
+  value,
+  onChange,
+  flex,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  flex?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [temp, setTemp] = useState(new Date(2026, 0, 15));
+
+  const confirm = () => {
+    onChange(dateToStr(temp));
+    setOpen(false);
+  };
+
+  return (
+    <View style={[gs.field, flex && gs.flex]}>
+      <Txt style={gs.fieldLabel}>{label}</Txt>
+      <View style={gs.dateBox}>
+        <TextInput
+          value={value}
+          onChangeText={t => onChange(maskDate(t))}
+          placeholder="DD/MM/AAAA"
+          placeholderTextColor="rgba(246,246,248,0.35)"
+          keyboardType="number-pad"
+          maxLength={10}
+          style={gs.dateInput}
+        />
+        <Pressable onPress={() => setOpen(true)} hitSlop={12}>
+          <IconCalendar size={18} color="rgba(246,246,248,0.55)" strokeWidth={2} />
+        </Pressable>
+      </View>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setOpen(false)}>
+        <Pressable style={gs.dateScrim} onPress={() => setOpen(false)} />
+        <View style={gs.dateSheet}>
+          <View style={gs.dateSheetHeader}>
+            <Pressable onPress={() => setOpen(false)} hitSlop={8}>
+              <Txt style={gs.dateSheetCancel}>Cancelar</Txt>
+            </Pressable>
+            <Txt style={gs.dateSheetTitle}>{label}</Txt>
+            <Pressable onPress={confirm} hitSlop={8}>
+              <Txt style={gs.dateSheetOk}>Listo</Txt>
+            </Pressable>
+          </View>
+          <DateTimePicker
+            value={temp}
+            mode="date"
+            display="inline"
+            themeVariant="dark"
+            accentColor="#ff2d46"
+            onChange={(_, d) => d && setTemp(d)}
+            style={gs.datePicker}
+          />
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
 // ─── GlassUploader ───────────────────────────────────────────────────────────
 
 function GlassUploader({
@@ -323,10 +406,10 @@ export function CrearEventoModal({
   const [idioma, setIdioma] = useState('Español');
 
   // Paso 3 — Fechas & Publicación
-  const [apertura, setApertura] = useState('15 ene 2026');
-  const [cierre, setCierre] = useState('28 ene 2026');
-  const [inicio, setInicio] = useState('01 feb 2026');
-  const [fin, setFin] = useState('30 mar 2026');
+  const [apertura, setApertura] = useState('15/01/2026');
+  const [cierre, setCierre] = useState('28/01/2026');
+  const [inicio, setInicio] = useState('01/02/2026');
+  const [fin, setFin] = useState('30/03/2026');
   const [reglMode, setReglMode] = useState('desc');
   const [reglDesc, setReglDesc] = useState('');
   const [reglPdf, setReglPdf] = useState<PdfFile | null>(null);
@@ -432,11 +515,11 @@ export function CrearEventoModal({
                 {/* ── Paso 3: Fechas & Publicación ── */}
                 {step === 2 && (
                   <>
-                    <GlassSelect label="APERTURA DE INSCRIPCIONES" value={apertura} options={DATE_APERTURA} onChange={setApertura} />
-                    <GlassSelect label="CIERRE · ROSTER LOCK" value={cierre} options={DATE_CIERRE} onChange={setCierre} />
+                    <GlassDateInput label="APERTURA DE INSCRIPCIONES" value={apertura} onChange={setApertura} />
+                    <GlassDateInput label="CIERRE · ROSTER LOCK" value={cierre} onChange={setCierre} />
                     <View style={gs.row}>
-                      <GlassSelect label="INICIO" value={inicio} options={DATE_INICIO} onChange={setInicio} flex />
-                      <GlassSelect label="FIN" value={fin} options={DATE_FIN} onChange={setFin} flex />
+                      <GlassDateInput label="INICIO" value={inicio} onChange={setInicio} flex />
+                      <GlassDateInput label="FIN" value={fin} onChange={setFin} flex />
                     </View>
                     <View style={gs.section}>
                       <Txt style={gs.fieldLabel}>REGLAMENTO</Txt>
@@ -726,6 +809,47 @@ const gs = StyleSheet.create({
   metaText: { flex: 1, fontFamily: fonts.glassBodyMedium, fontSize: 11.5, color: 'rgba(246,246,248,0.5)' },
   uploadedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 8 },
   uploadedText: { fontFamily: fonts.glassBodyBold, fontSize: 11.5, color: '#5fe49a' },
+
+  // GlassDateInput
+  dateBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: FIELD_BOX_BG,
+    borderWidth: 1,
+    borderColor: FIELD_BOX_BORDER,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 17,
+    gap: 10,
+  },
+  dateInput: {
+    flex: 1,
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 15,
+    color: '#f6f6f8',
+    padding: 0,
+    margin: 0,
+  },
+  dateScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.62)' },
+  dateSheet: {
+    backgroundColor: '#0d0d10',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.09)',
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+  },
+  dateSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 18,
+  },
+  dateSheetCancel: { fontFamily: fonts.glassBodyMedium, fontSize: 15, color: 'rgba(246,246,248,0.55)' },
+  dateSheetTitle: { fontFamily: fonts.glassBodyBold, fontSize: 13, letterSpacing: 1, color: 'rgba(246,246,248,0.45)' },
+  dateSheetOk: { fontFamily: fonts.glassBodyBold, fontSize: 15, color: '#ff5f73' },
+  datePicker: { alignSelf: 'center' },
 
   // Fila
   row: { flexDirection: 'row', gap: 12 },
