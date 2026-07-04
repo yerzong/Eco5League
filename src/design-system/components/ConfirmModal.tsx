@@ -17,6 +17,9 @@ interface ConfirmModalProps {
   body: string;
   cancelLabel?: string;
   confirmLabel?: string;
+  /** Variante del botón cancelar. Default 'secondary'. Usa 'danger-outline'
+   *  cuando cancelar también es una acción de riesgo (ej. "¿Salir sin guardar?"). */
+  cancelVariant?: 'secondary' | 'danger-outline';
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -29,6 +32,7 @@ export function ConfirmModal({
   body,
   cancelLabel = 'Cancelar',
   confirmLabel = 'Confirmar',
+  cancelVariant = 'secondary',
   onCancel,
   onConfirm,
 }: ConfirmModalProps) {
@@ -44,13 +48,14 @@ export function ConfirmModal({
           <View style={styles.actions}>
             <AppButton
               label={cancelLabel}
-              variant="secondary"
+              variant={cancelVariant}
               onPress={onCancel}
               fullWidth={false}
               style={styles.actionBtn}
             />
             <AppButton
               label={confirmLabel}
+              variant="primary"
               onPress={onConfirm}
               fullWidth={false}
               style={styles.actionBtn}

@@ -23,6 +23,7 @@ export function Txt({
 }: TxtProps) {
   return (
     <Text
+      allowFontScaling={false}
       style={[
         styles.base,
         theme.typography[variant],

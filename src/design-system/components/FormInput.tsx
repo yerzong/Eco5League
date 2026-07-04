@@ -36,7 +36,7 @@ export function FormInput({
       value={value}
       onChangeText={handleChange}
       placeholder={placeholder}
-      placeholderTextColor={theme.colors.textTertiary}
+      placeholderTextColor={theme.colors.textOnGlassFaint}
       multiline={multiline}
       keyboardType={numeric ? 'number-pad' : 'default'}
       maxLength={maxLength}
@@ -47,15 +47,15 @@ export function FormInput({
 
 const styles = StyleSheet.create({
   input: {
-    height: 50,
-    paddingHorizontal: 14,
-    backgroundColor: theme.colors.surfaceSunken,
+    height: 54,
+    paddingHorizontal: 16,
+    backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
-    borderColor: theme.colors.borderSubtle,
-    borderRadius: 10,
-    color: theme.colors.textPrimary,
-    fontFamily: fonts.body,
-    fontSize: 14,
+    borderColor: theme.colors.glassBorder,
+    borderRadius: 14,
+    color: '#f6f6f8',
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 15,
   },
-  multiline: { height: 76, paddingTop: 13, textAlignVertical: 'top' },
+  multiline: { height: 96, paddingTop: 15, textAlignVertical: 'top' },
 });

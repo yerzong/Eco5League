@@ -19,7 +19,7 @@ import { fonts } from '@/design-system/tokens/typography';
 import type { IconProps } from '@/design-system/icons';
 import { Txt } from './Txt';
 
-export type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-outline';
 
 interface AppButtonProps {
   label: string;
@@ -37,11 +37,12 @@ interface AppButtonProps {
 /** Color del contenido (texto/ícono) por variante y estado. */
 function contentColor(variant: AppButtonVariant, disabled?: boolean): string {
   if (disabled) {
-    return variant === 'ghost' || variant === 'secondary'
+    return variant === 'ghost' || variant === 'secondary' || variant === 'danger-outline'
       ? 'rgba(255,255,255,0.28)'
       : 'rgba(255,255,255,0.32)';
   }
   if (variant === 'ghost') return theme.colors.redSoft;
+  if (variant === 'danger-outline') return theme.colors.redBright;
   return theme.colors.white;
 }
 
@@ -80,6 +81,12 @@ function containerStyle(
       };
     case 'ghost':
       return pressed ? { backgroundColor: 'rgba(255,255,255,0.08)' } : {};
+    case 'danger-outline':
+      return {
+        backgroundColor: pressed ? 'rgba(255,59,82,0.22)' : 'rgba(255,59,82,0.14)',
+        borderWidth: 1,
+        borderColor: pressed ? 'rgba(255,59,82,0.7)' : 'rgba(255,59,82,0.55)',
+      };
   }
 }
 

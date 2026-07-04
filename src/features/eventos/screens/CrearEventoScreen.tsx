@@ -18,7 +18,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { launchImageLibrary, type Asset } from 'react-native-image-picker';
-import { Txt, GlowBackground, PdfUpload, type PdfFile } from '@/design-system/components';
+import { Txt, GlowBackground, PdfUpload, ConfirmModal, type PdfFile } from '@/design-system/components';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { IconChevronLeft, IconCheck, IconChevronDown, IconX, IconCalendar } from '@/design-system/icons';
 import { theme } from '@/design-system/theme';
@@ -361,11 +361,12 @@ function GlassUploader({
 
 // ─── PrimaryButton ───────────────────────────────────────────────────────────
 
-function PrimaryButton({ label, onPress }: { label: string; onPress: () => void }) {
+function PrimaryButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
   return (
     <Pressable
-      style={({ pressed }) => [gs.primaryBtn, pressed && gs.pressed]}
-      onPress={onPress}>
+      style={({ pressed }) => [gs.primaryBtn, pressed && gs.pressed, disabled && gs.primaryBtnDisabled]}
+      onPress={onPress}
+      disabled={disabled}>
       <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="evtBtnGrad" x1="0" y1="0" x2="0" y2="1">
@@ -409,10 +410,16 @@ export function CrearEventoModal({
 }) {
   const [step, setStep] = useState(0);
   const [published, setPublished] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [confirmUnsaved, setConfirmUnsaved] = useState(false);
+
+  // HOF que marca el form como modificado antes de llamar al setter original.
+  // Nota: función declarada (no arrow) para evitar ambigüedad con JSX en TSX.
+  function mark<T>(setter: (v: T) => void) { return (v: T) => { setIsDirty(true); setter(v); }; }
 
   // Paso 1 — Identidad
   const [cover, setCover] = useState<Asset | null>(null);
-  const [nombre, setNombre] = useState('Copa ECO5 · Temporada 2');
+  const [nombre, setNombre] = useState('');
   const [tipo, setTipo] = useState('Liga');
   const [juego, setJuego] = useState('Gears E-Day');
   const [modo, setModo] = useState('4v4');
@@ -442,9 +449,12 @@ export function CrearEventoModal({
 
   const close = () => {
     onClose();
-    setTimeout(() => { setStep(0); setPublished(false); }, 320);
+    setTimeout(() => { setStep(0); setPublished(false); setIsDirty(false); }, 320);
   };
-  const back = () => (step > 0 ? setStep(p => p - 1) : close());
+  const back = () => {
+    if (step > 0) { setStep(p => p - 1); return; }
+    if (isDirty) { setConfirmUnsaved(true); } else { close(); }
+  };
   const next = () => (step < 2 ? setStep(p => p + 1) : setPublished(true));
 
   return (
@@ -481,38 +491,39 @@ export function CrearEventoModal({
                 {/* ── Paso 1: Identidad ── */}
                 {step === 0 && (
                   <>
-                    <GlassUploader value={cover} onChange={setCover} />
+                    <GlassUploader value={cover} onChange={mark(setCover)} />
                     <GlassInput
                       label="NOMBRE DEL EVENTO"
                       value={nombre}
-                      onChangeText={setNombre}
+                      onChangeText={mark(setNombre)}
+                      placeholder="Ej. Copa ECO5 · Temporada 2"
                     />
                     <GlassSelect
                       label="TIPO / CATEGORÍA"
                       value={tipo}
                       options={TIPO_OPTS}
-                      onChange={setTipo}
+                      onChange={mark(setTipo)}
                     />
                     <View style={gs.row}>
                       <GlassSelect
                         label="JUEGO"
                         value={juego}
                         options={JUEGO_OPTS}
-                        onChange={setJuego}
+                        onChange={mark(setJuego)}
                         flex
                       />
                       <GlassSelect
                         label="MODO"
                         value={modo}
                         options={MODO_OPTS}
-                        onChange={setModo}
+                        onChange={mark(setModo)}
                         flex
                       />
                     </View>
                     <GlassInput
                       label="DESCRIPCIÓN"
                       value={descripcion}
-                      onChangeText={setDescripcion}
+                      onChangeText={mark(setDescripcion)}
                       placeholder="Resumen del evento, formato y reglas…"
                       multiline
                     />
@@ -522,27 +533,27 @@ export function CrearEventoModal({
                 {/* ── Paso 2: Formato & Roster ── */}
                 {step === 1 && (
                   <>
-                    <GlassSelect label="FORMATO" value={formato} options={FORMATO_OPTS} onChange={setFormato} />
-                    <GlassSelect label="COMPOSICIÓN DE ROSTER" value={roster} options={ROSTER_OPTS} onChange={setRoster} />
+                    <GlassSelect label="FORMATO" value={formato} options={FORMATO_OPTS} onChange={mark(setFormato)} />
+                    <GlassSelect label="COMPOSICIÓN DE ROSTER" value={roster} options={ROSTER_OPTS} onChange={mark(setRoster)} />
                     <View style={gs.row}>
-                      <GlassInput label="MÍN. EQUIPOS" value={minEquipos} onChangeText={setMinEquipos} keyboardType="numeric" flex />
-                      <GlassInput label="MÁX. EQUIPOS" value={maxEquipos} onChangeText={setMaxEquipos} keyboardType="numeric" flex />
+                      <GlassInput label="MÍN. EQUIPOS" value={minEquipos} onChangeText={mark(setMinEquipos)} keyboardType="numeric" flex />
+                      <GlassInput label="MÁX. EQUIPOS" value={maxEquipos} onChangeText={mark(setMaxEquipos)} keyboardType="numeric" flex />
                     </View>
-                    <GlassSelect label="SLOTS / HORARIOS" value={slots} options={SLOTS_OPTS} onChange={setSlots} />
-                    <GlassInput label="COOLDOWN DE TRANSFERENCIAS" value={cooldown} onChangeText={setCooldown} />
-                    <GlassInput label="RESTRICCIONES" value={restricciones} onChangeText={setRestricciones} />
-                    <GlassSelect label="IDIOMA" value={idioma} options={IDIOMA_OPTS} onChange={setIdioma} />
+                    <GlassSelect label="SLOTS / HORARIOS" value={slots} options={SLOTS_OPTS} onChange={mark(setSlots)} />
+                    <GlassInput label="COOLDOWN DE TRANSFERENCIAS" value={cooldown} onChangeText={mark(setCooldown)} />
+                    <GlassInput label="RESTRICCIONES" value={restricciones} onChangeText={mark(setRestricciones)} />
+                    <GlassSelect label="IDIOMA" value={idioma} options={IDIOMA_OPTS} onChange={mark(setIdioma)} />
                   </>
                 )}
 
                 {/* ── Paso 3: Fechas & Publicación ── */}
                 {step === 2 && (
                   <>
-                    <GlassDateInput label="APERTURA DE INSCRIPCIONES" value={apertura} onChange={setApertura} />
-                    <GlassDateInput label="CIERRE · ROSTER LOCK" value={cierre} onChange={setCierre} />
+                    <GlassDateInput label="APERTURA DE INSCRIPCIONES" value={apertura} onChange={mark(setApertura)} />
+                    <GlassDateInput label="CIERRE · ROSTER LOCK" value={cierre} onChange={mark(setCierre)} />
                     <View style={gs.row}>
-                      <GlassDateInput label="INICIO" value={inicio} onChange={setInicio} flex />
-                      <GlassDateInput label="FIN" value={fin} onChange={setFin} flex />
+                      <GlassDateInput label="INICIO" value={inicio} onChange={mark(setInicio)} flex />
+                      <GlassDateInput label="FIN" value={fin} onChange={mark(setFin)} flex />
                     </View>
                     <View style={gs.section}>
                       <Txt style={gs.fieldLabel}>REGLAMENTO</Txt>
@@ -552,21 +563,21 @@ export function CrearEventoModal({
                           { key: 'pdf', label: 'Subir PDF' },
                         ]}
                         value={reglMode}
-                        onChange={setReglMode}
+                        onChange={mark(setReglMode)}
                       />
                       {reglMode === 'desc' ? (
                         <GlassInput
                           value={reglDesc}
-                          onChangeText={setReglDesc}
+                          onChangeText={mark(setReglDesc)}
                           placeholder="Reglas, formato de partidas y sanciones…"
                           multiline
                         />
                       ) : (
-                        <PdfUpload value={reglPdf} onChange={setReglPdf} />
+                        <PdfUpload value={reglPdf} onChange={mark(setReglPdf)} />
                       )}
                     </View>
-                    <GlassInput label="PREMIO" value={premio} onChangeText={setPremio} />
-                    <GlassInput label="STREAM / DISCORD" value={stream} onChangeText={setStream} />
+                    <GlassInput label="PREMIO" value={premio} onChangeText={mark(setPremio)} />
+                    <GlassInput label="STREAM / DISCORD" value={stream} onChangeText={mark(setStream)} />
                     <View style={gs.section}>
                       <Txt style={gs.fieldLabel}>VISIBILIDAD</Txt>
                       <GlassSegmented
@@ -576,7 +587,7 @@ export function CrearEventoModal({
                           { key: 'invitacion', label: 'Invitación' },
                         ]}
                         value={visibility}
-                        onChange={setVisibility}
+                        onChange={mark(setVisibility)}
                       />
                     </View>
                   </>
@@ -590,12 +601,27 @@ export function CrearEventoModal({
                 <Pressable style={gs.secondaryBtn} onPress={back}>
                   <Txt style={gs.secondaryLabel}>{step === 0 ? 'Cancelar' : 'Atrás'}</Txt>
                 </Pressable>
-                <PrimaryButton label={step < 2 ? 'Siguiente' : 'Publicar'} onPress={next} />
+                <PrimaryButton
+                  label={step < 2 ? 'Siguiente' : 'Publicar'}
+                  onPress={next}
+                  disabled={!isDirty}
+                />
               </View>
             </SafeAreaView>
           </View>
         )}
       </SafeAreaProvider>
+
+      <ConfirmModal
+        visible={confirmUnsaved}
+        title="¿Salir sin guardar?"
+        body="Perderás la información ingresada. El evento no será creado."
+        cancelLabel="Cancelar"
+        confirmLabel="Sí, regresar"
+        cancelVariant="danger-outline"
+        onCancel={() => setConfirmUnsaved(false)}
+        onConfirm={() => { setConfirmUnsaved(false); setTimeout(close, 280); }}
+      />
     </Modal>
   );
 }
@@ -856,17 +882,14 @@ const gs = StyleSheet.create({
   preview: { height: 118, borderRadius: 14, overflow: 'hidden', backgroundColor: '#14080a' },
   previewActions: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
-    right: 14,
+    top: 10,
+    right: 10,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   changeBtn: {
     height: 32,
     paddingHorizontal: 12,
-    paddingVertical: 7,
     borderRadius: 10,
     backgroundColor: 'rgba(0,0,0,0.4)',
     borderWidth: 1,
@@ -987,6 +1010,7 @@ const gs = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)',
   },
   pressed: { opacity: 0.88 },
+  primaryBtnDisabled: { opacity: 0.38, shadowOpacity: 0 },
   primaryLabel: { fontFamily: fonts.glassBodyBold, fontSize: 15, color: '#ffffff', letterSpacing: 0.3 },
 
   // ── Success ──

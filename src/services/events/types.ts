@@ -17,6 +17,8 @@ export interface LeagueEvent {
   format: EventFormat;
   /** Color de acento del cover (gradiente + shard). Default rojo de marca. */
   accent?: string;
+  /** URI de la foto de portada. Si existe, se muestra como fondo de la card. */
+  coverUri?: string;
   /** Texto de equipos del footer (ej. "16/16 equipos"). */
   teamsLabel?: string;
   /** Meta del footer-derecho (ej. "01 feb – 30 mar", "Cierra 25 jun"). */

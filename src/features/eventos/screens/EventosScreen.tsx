@@ -36,7 +36,6 @@ import {
 import { eventsService, type LeagueEvent } from '@/services';
 import { filterEvents } from '../eventFilters';
 import { CrearEventoModal } from './CrearEventoScreen';
-import { EditarEventoModal } from './EditarEventoScreen';
 import { EventoGestionModal } from './EventoGestionScreen';
 
 /** Grupos del panel de Filtros (con predicados de datos). */
@@ -116,7 +115,6 @@ export function EventosScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [viewing, setViewing] = useState<LeagueEvent | null>(null);
-  const [editing, setEditing] = useState<LeagueEvent | null>(null);
   const loading = useTabLoading();
 
   useEffect(() => {
@@ -207,13 +205,8 @@ export function EventosScreen() {
         visible={!!viewing}
         event={viewing}
         onClose={() => setViewing(null)}
-        onEdit={() => setEditing(viewing)}
-      />
-      <EditarEventoModal
-        visible={!!editing}
-        event={editing}
-        onClose={() => setEditing(null)}
-        onDeleted={ev => {
+        // Editar se abre anidado DENTRO de gestión (push horizontal encima).
+        onDelete={ev => {
           setEvents(es => es.filter(e => e.id !== ev.id));
           setViewing(null);
         }}

@@ -1,27 +1,28 @@
 /**
- * EV-01 · Gestión del evento — reemplaza el detalle anterior. Pantalla con
- * pestañas (Resumen · Equipos · Staff · Brackets · Partidos). Se abre al tocar
- * una card de evento. Por ahora: Resumen completo; el resto se va portando.
- * Datos de maqueta (del diseño).
+ * EV ✦ Gestión del evento — rediseño glass. Fiel a Figma 637:3563.
+ * 5 tabs: Resumen (completo) · Equipos · Staff · Brackets · Partidos (placeholders).
  */
-import React, { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Image,
+  LayoutChangeEvent,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, Ellipse, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { Txt } from '@/design-system/components';
 import {
   IconChevronLeft,
-  IconChevronRight,
-  IconChevronDown,
   IconPencil,
-  IconShieldLock,
-  IconShare,
-  IconBrandTwitch,
-  IconBrandDiscord,
 } from '@/design-system/icons';
-import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import type { LeagueEvent } from '@/services';
+import { EditarEventoModal } from './EditarEventoScreen';
 
 const TABS = ['Resumen', 'Equipos', 'Staff', 'Brackets', 'Partidos'] as const;
 type TabKey = (typeof TABS)[number];
@@ -30,384 +31,586 @@ interface EventoGestionModalProps {
   visible: boolean;
   event: LeagueEvent | null;
   onClose: () => void;
-  onEdit: () => void;
+  /** Se llama tras confirmar la eliminación del evento. */
+  onDelete?: (event: LeagueEvent) => void;
 }
 
-export function EventoGestionModal({ visible, event, onClose, onEdit }: EventoGestionModalProps) {
+export function EventoGestionModal({
+  visible,
+  event,
+  onClose,
+  onDelete,
+}: EventoGestionModalProps) {
   const [tab, setTab] = useState<TabKey>('Resumen');
+  // Editar se abre ENCIMA (anidado), deslizándose de derecha a izquierda.
+  const [editing, setEditing] = useState(false);
+  const activeIndex = TABS.indexOf(tab);
+
+  // Al cerrarse la gestión, reseteamos el editor para la próxima apertura.
+  useEffect(() => {
+    if (!visible) setEditing(false);
+  }, [visible]);
+
+  // Subrayado deslizante: medimos cada tab y animamos un indicador único.
+  const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
+  const indicatorX = useRef(new Animated.Value(0)).current;
+  const indicatorW = useRef(new Animated.Value(0)).current;
+
+  const onTabLayout = (i: number) => (e: LayoutChangeEvent) => {
+    const { x, width } = e.nativeEvent.layout;
+    setTabLayouts(prev => {
+      if (prev[i]?.x === x && prev[i]?.width === width) return prev;
+      const next = [...prev];
+      next[i] = { x, width };
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const l = tabLayouts[activeIndex];
+    if (!l) return;
+    Animated.parallel([
+      Animated.spring(indicatorX, {
+        toValue: l.x,
+        useNativeDriver: false,
+        speed: 18,
+        bounciness: 6,
+      }),
+      Animated.spring(indicatorW, {
+        toValue: l.width,
+        useNativeDriver: false,
+        speed: 18,
+        bounciness: 6,
+      }),
+    ]).start();
+  }, [activeIndex, tabLayouts, indicatorX, indicatorW]);
+
+  // Transición de contenido: fade + slide direccional al cambiar de tab.
+  const contentSlide = useRef(new Animated.Value(0)).current;
+  const contentOpacity = useRef(new Animated.Value(1)).current;
+  const prevIndexRef = useRef(activeIndex);
+  useEffect(() => {
+    const dir = activeIndex >= prevIndexRef.current ? 1 : -1;
+    prevIndexRef.current = activeIndex;
+    contentSlide.setValue(dir * 18);
+    contentOpacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(contentSlide, {
+        toValue: 0,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentOpacity, {
+        toValue: 1,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [tab, activeIndex, contentSlide, contentOpacity]);
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent>
       <SafeAreaProvider>
-        <View style={styles.root}>
-          <SafeAreaView style={styles.flex} edges={['top']}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Pressable style={styles.iconGhost} hitSlop={8} onPress={onClose}>
-                <IconChevronLeft size={22} color={theme.colors.textPrimary} strokeWidth={2} />
+        <View style={gs.root}>
+          {/* Glow rojo arriba-izquierda (Figma 637:3564) */}
+          <View style={gs.glow} pointerEvents="none">
+            <Svg width="100%" height="100%">
+              <Defs>
+                <RadialGradient
+                  id="evGlow"
+                  gradientUnits="userSpaceOnUse"
+                  cx="195"
+                  cy="20"
+                  r="280">
+                  <Stop offset="0" stopColor="#c0152a" stopOpacity={0.65} />
+                  <Stop offset="0.55" stopColor="#8a0d1c" stopOpacity={0.18} />
+                  <Stop offset="1" stopColor="#060608" stopOpacity={0} />
+                </RadialGradient>
+              </Defs>
+              <Rect x="0" y="0" width="100%" height="100%" fill="url(#evGlow)" />
+            </Svg>
+          </View>
+
+          <SafeAreaView style={gs.flex} edges={['top']}>
+            {/* Encabezado (Figma 635:3564) */}
+            <View style={gs.header}>
+              <Pressable onPress={onClose} hitSlop={12}>
+                <IconChevronLeft size={22} color="#f6f6f8" strokeWidth={2} />
               </Pressable>
-              <Txt style={styles.headerTitle}>Gestión del evento</Txt>
-              <Pressable style={styles.iconBtn} hitSlop={8} onPress={onEdit}>
-                <IconPencil size={20} color={theme.colors.textSecondary} strokeWidth={2} />
+              <Txt style={gs.headerTitle}>Gestión del evento</Txt>
+              <Pressable onPress={() => setEditing(true)} hitSlop={12}>
+                <IconPencil size={20} color="rgba(246,246,248,0.55)" strokeWidth={1.8} />
               </Pressable>
             </View>
 
-            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-              {/* Hero */}
-              <View style={styles.hero}>
-                <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
-                  <Defs>
-                    <LinearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="1">
-                      <Stop offset="0" stopColor="#c8102e" stopOpacity={0.85} />
-                      <Stop offset="1" stopColor="#1a0608" />
-                    </LinearGradient>
-                  </Defs>
-                  <Rect x="0" y="0" width="100%" height="100%" rx={16} fill="url(#heroGrad)" />
-                </Svg>
-                <View style={styles.heroTop}>
-                  <View style={styles.ligaTag}>
-                    <Txt style={styles.ligaText}>LIGA</Txt>
-                  </View>
-                  <View style={styles.statusPill}>
-                    <View style={styles.statusDot} />
-                    <Txt style={styles.statusText}>EN CURSO</Txt>
-                  </View>
-                </View>
-                <View style={styles.heroBottom}>
-                  <Txt style={styles.heroName} numberOfLines={1}>
-                    {event?.title ?? 'Copa ECO5 · Temporada 1'}
-                  </Txt>
-                  <Txt style={styles.heroSub}>Liga · Gears E-Day · 4v4</Txt>
-                </View>
-              </View>
+            <ScrollView
+              contentContainerStyle={gs.scroll}
+              showsVerticalScrollIndicator={false}>
+              {/* Banner evento (Figma 635:3570) */}
+              <EvBanner event={event} />
 
-              {/* Tabs */}
-              <View style={styles.tabs}>
-                {TABS.map(t => {
+              {/* Barra de tabs (Figma 636:3563) */}
+              <View style={gs.tabBar}>
+                {/* Riel inactivo + indicador deslizante */}
+                <View style={gs.tabRail} />
+                <Animated.View
+                  style={[gs.indicator, { left: indicatorX, width: indicatorW }]}
+                />
+                {TABS.map((t, i) => {
                   const active = t === tab;
                   return (
-                    <Pressable key={t} style={styles.tab} onPress={() => setTab(t)}>
-                      <Txt style={[styles.tabText, ...(active ? [styles.tabTextActive] : [])]}>{t}</Txt>
-                      <View style={[styles.tabUnderline, active && styles.tabUnderlineActive]} />
+                    <Pressable
+                      key={t}
+                      style={gs.tabItem}
+                      onLayout={onTabLayout(i)}
+                      onPress={() => setTab(t)}>
+                      <Txt style={active ? gs.tabActive : gs.tabIdle}>{t}</Txt>
                     </Pressable>
                   );
                 })}
               </View>
-              <View style={styles.divider} />
 
-              {tab === 'Resumen' ? <ResumenTab /> : <Placeholder tab={tab} />}
+              <Animated.View
+                style={{
+                  opacity: contentOpacity,
+                  transform: [{ translateX: contentSlide }],
+                }}>
+                {tab === 'Resumen' ? (
+                  <ResumenTab event={event} />
+                ) : (
+                  <Placeholder tab={tab} />
+                )}
+              </Animated.View>
             </ScrollView>
-
-            {/* Footer */}
-            <SafeAreaView edges={['bottom']} style={styles.footer}>
-              <Pressable style={styles.footerGhost} onPress={onEdit}>
-                <IconShare size={18} color={theme.colors.textPrimary} strokeWidth={2} />
-              </Pressable>
-              <Pressable style={styles.footerPrimary}>
-                <IconChevronDown size={18} color={theme.colors.white} strokeWidth={2} />
-                <Txt style={styles.footerPrimaryText}>Estado · En curso</Txt>
-              </Pressable>
-            </SafeAreaView>
           </SafeAreaView>
         </View>
       </SafeAreaProvider>
+
+      {/* Editar evento — anidado, entra de derecha a izquierda encima */}
+      <EditarEventoModal
+        visible={editing}
+        event={event}
+        onClose={() => setEditing(false)}
+        onDeleted={ev => {
+          // Evento eliminado desde editar: cerramos editar y gestión → lista.
+          setEditing(false);
+          if (onDelete) onDelete(ev);
+          onClose();
+        }}
+      />
     </Modal>
   );
 }
 
-/* ---------- Resumen ---------- */
+/* ─────────────────── Banner ─────────────────── */
 
-function ResumenTab() {
+function EvBanner({ event }: { event: LeagueEvent | null }) {
+  const coverUri = event?.coverUri;
   return (
-    <View style={styles.tabBody}>
-      {/* Datos clave */}
-      <View style={styles.cardSunk}>
-        <SectionTitle label="DATOS CLAVE" />
-        <View style={styles.statRow}>
-          <Stat label="EQUIPOS" value="8 / 8" />
-          <Stat label="STAFF" value="6 asignados" />
+    <View style={gs.banner}>
+      {coverUri ? (
+        <>
+          {/* Foto de portada del evento */}
+          <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          {/* Velo oscuro para legibilidad de badges/título */}
+          <Svg
+            style={StyleSheet.absoluteFill}
+            viewBox="0 0 346 120"
+            preserveAspectRatio="none">
+            <Defs>
+              <LinearGradient id="bannerScrim" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor="#060608" stopOpacity={0.35} />
+                <Stop offset="1" stopColor="#060608" stopOpacity={0.78} />
+              </LinearGradient>
+            </Defs>
+            <Rect x="0" y="0" width="346" height="120" fill="url(#bannerScrim)" />
+          </Svg>
+        </>
+      ) : (
+        <Svg
+          style={StyleSheet.absoluteFill}
+          viewBox="0 0 346 120"
+          preserveAspectRatio="none">
+          <Defs>
+            <LinearGradient id="bannerGrad" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor="#17080d" />
+              <Stop offset="1" stopColor="#8c1724" />
+            </LinearGradient>
+            {/* Glow circular centro-derecha (Figma 635:3571: 220×170 @ left200/top-50) */}
+            <RadialGradient
+              id="bannerCircle"
+              gradientUnits="userSpaceOnUse"
+              cx="300"
+              cy="32"
+              r="150">
+              <Stop offset="0" stopColor="#ff4866" stopOpacity={0.78} />
+              <Stop offset="0.45" stopColor="#d11f38" stopOpacity={0.32} />
+              <Stop offset="1" stopColor="#8c1724" stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="346" height="120" fill="url(#bannerGrad)" />
+          <Ellipse cx="300" cy="32" rx="155" ry="128" fill="url(#bannerCircle)" />
+        </Svg>
+      )}
+      {/* Fila superior: badge tipo + status */}
+      <View style={gs.bannerTop}>
+        <View style={gs.ligaBadge}>
+          <Txt style={gs.ligaLabel}>LIGA</Txt>
         </View>
-        <View style={styles.statRow}>
-          <Stat label="FORMATO" value="Grupos + Playoffs" />
-          <Stat label="REGIÓN" value="México · ES" />
-        </View>
-        <View style={styles.statRow}>
-          <Stat label="COOLDOWN TRANSF." value="48 h" />
-          <Stat label="VISIBILIDAD" value="Pública" />
+        <View style={gs.statusPill}>
+          <Txt style={gs.statusLabel}>EN CURSO</Txt>
         </View>
       </View>
-
-      {/* Descripción */}
-      <View style={styles.card}>
-        <SectionTitle label="DESCRIPCIÓN" />
-        <Txt style={styles.paragraph}>
-          Liga oficial ECO5 de Gears E-Day 4v4. Fase de grupos seguida de playoffs de eliminación
-          directa. Abierta a orgs registradas de la región.
+      {/* Fila inferior: título + subtítulo */}
+      <View style={gs.bannerBottom}>
+        <Txt style={gs.bannerTitle} numberOfLines={1}>
+          {event?.title ?? 'Copa ECO5 · Temporada 1'}
         </Txt>
+        <Txt style={gs.bannerSub}>Liga · Gears E-Day · 4v4</Txt>
       </View>
+    </View>
+  );
+}
 
-      {/* Formato & roster */}
-      <View style={styles.card}>
-        <SectionTitle label="FORMATO & ROSTER" />
-        <View style={styles.statRow}>
-          <Stat small label="ROSTER" value="4 + 2 supl. + coach" />
-          <Stat small label="JUGADORES MÍN." value="4 por equipo" />
-        </View>
-        <View style={styles.statRow}>
-          <Stat small label="EQUIPOS" value="mín 6 · máx 8" />
-          <Stat small label="SLOTS" value="L–V 18:00 · S–D AM" />
-        </View>
-      </View>
+/* ─────────────────── ResumenTab ─────────────────── */
 
-      {/* Fechas clave */}
-      <View style={styles.card}>
-        <SectionTitle label="FECHAS CLAVE" />
-        <DateRow color={theme.colors.accentGreen} label="Apertura inscripciones" value="15 ene 2026" />
-        <DateRow color={theme.colors.accentAmber} label="Cierre · roster lock" value="28 ene 2026" />
-        <DateRow color={theme.colors.brandRed} label="Inicio del torneo" value="01 feb 2026" />
-        <DateRow color={theme.colors.textTertiary} label="Finalización estimada" value="30 mar 2026" />
-      </View>
+function ResumenTab({ event: _event }: { event: LeagueEvent | null }) {
+  return (
+    <View style={gs.tabContent}>
+      {/* DATOS CLAVE */}
+      <GlassCard>
+        <SectionHead label="DATOS CLAVE" />
+        <View style={gs.statGrid}>
+          <StatItem label="Equipos" value="8 / 8" />
+          <StatItem label="Staff" value="6 asignados" />
+        </View>
+        <View style={gs.statGrid}>
+          <StatItem label="Formato" value="Grupos + Playoffs" />
+          <StatItem label="Región" value="México · ES" />
+        </View>
+        <View style={gs.statGrid}>
+          <StatItem label="Cooldown transfer." value="48 h" />
+          <StatItem label="Visibilidad" value="Pública" />
+        </View>
+      </GlassCard>
 
-      {/* Reglas & elegibilidad */}
-      <View style={styles.card}>
-        <SectionTitle label="REGLAS & ELEGIBILIDAD" />
-        <Pressable style={styles.fileRow}>
-          <View style={styles.fileIcon}>
-            <IconShieldLock size={18} color={theme.colors.brandRed} strokeWidth={1.9} />
-          </View>
-          <View style={styles.flex}>
-            <Txt style={styles.fileTitle}>Reglamento oficial ECO5</Txt>
-            <Txt style={styles.fileSub}>PDF · v2.1 · toca para abrir</Txt>
-          </View>
-          <IconChevronRight size={18} color={theme.colors.textSecondary} strokeWidth={2} />
-        </Pressable>
-        <View style={styles.kvRow}>
-          <Txt style={styles.kvLabel}>Restricciones</Txt>
-          <Txt style={styles.kvValue}>Edad 16+ · MX · sin smurfs</Txt>
-        </View>
-      </View>
+      {/* DESCRIPCIÓN */}
+      <GlassCard>
+        <SectionHead label="DESCRIPCIÓN" />
+        <Txt style={gs.paragraph}>
+          Liga oficial ECO5 de Gears E-Day 4v4. Fase de grupos seguida de playoffs de
+          eliminación directa. Abierta a orgs registradas en la región.
+        </Txt>
+      </GlassCard>
 
-      {/* Premio */}
-      <View style={styles.card}>
-        <SectionTitle label="PREMIO" />
-        <View style={styles.prizeRow}>
-          <View style={styles.prizeIcon}>
-            <Txt style={styles.prizeEmoji}>🏆</Txt>
-          </View>
-          <View style={styles.flex}>
-            <Txt style={styles.prizeAmount}>$15,000 MXN</Txt>
-            <Txt style={styles.prizeNote}>+ clasificación a Finals · solo display</Txt>
-          </View>
+      {/* FORMATO & ROSTER */}
+      <GlassCard>
+        <SectionHead label="FORMATO & ROSTER" />
+        <View style={gs.statGrid}>
+          <StatItem label="Composición" value="4 + 2 supl. + coach" />
+          <StatItem label="Jugadores" value="4 por equipo" />
         </View>
-      </View>
+        <View style={gs.statGrid}>
+          <StatItem label="Equipos" value="mín 8 · máx 16" />
+          <StatItem label="Slots" value="L–V 18:00 · S–D AM" />
+        </View>
+      </GlassCard>
 
-      {/* Stream & comunidad */}
-      <View style={styles.card}>
-        <SectionTitle label="STREAM & COMUNIDAD" />
-        <View style={styles.linkRow}>
-          <View style={styles.linkIcon}>
-            <IconBrandTwitch size={18} color="#a970ff" strokeWidth={1.9} />
-          </View>
-          <Txt style={styles.linkLabel}>Twitch</Txt>
-          <Txt style={styles.linkValue}>/eco5esports</Txt>
+      {/* FECHAS CLAVE */}
+      <GlassCard>
+        <SectionHead label="FECHAS CLAVE" />
+        <View style={gs.statGrid}>
+          <StatItem label="Apertura" value="15 ene 2026" />
+          <StatItem label="Cierre · roster lock" value="28 ene 2026" />
         </View>
-        <View style={styles.linkRow}>
-          <View style={styles.linkIcon}>
-            <IconBrandDiscord size={18} color="#5865f2" strokeWidth={1.9} />
-          </View>
-          <Txt style={styles.linkLabel}>Discord</Txt>
-          <Txt style={styles.linkValue}>/eco5</Txt>
+        <View style={gs.statGrid}>
+          <StatItem label="Inicio" value="01 feb 2026" />
+          <StatItem label="Fin estimado" value="30 mar 2026" />
         </View>
-      </View>
+      </GlassCard>
+
+      {/* PREMIO */}
+      <GlassCard>
+        <SectionHead label="PREMIO" />
+        <Txt style={gs.prizeAmount}>$15,000 MXN</Txt>
+        <Txt style={gs.prizeNote}>1º lugar + Finals · entrega digital</Txt>
+      </GlassCard>
+
+      {/* STREAM & COMUNIDAD */}
+      <GlassCard>
+        <SectionHead label="STREAM & COMUNIDAD" />
+        <View style={gs.statGrid}>
+          <StatItem label="Twitch" value="twitch.tv/eco5" />
+          <StatItem label="Discord" value="discord.gg/eco5" />
+        </View>
+      </GlassCard>
     </View>
   );
 }
 
 function Placeholder({ tab }: { tab: TabKey }) {
   return (
-    <View style={styles.placeholder}>
-      <Txt style={styles.placeholderTitle}>{tab}</Txt>
-      <Txt style={styles.placeholderText}>Pestaña en construcción</Txt>
+    <View style={gs.placeholder}>
+      <Txt style={gs.placeholderTitle}>{tab}</Txt>
+      <Txt style={gs.placeholderSub}>Pestaña en construcción</Txt>
     </View>
   );
 }
 
-/* ---------- Helpers ---------- */
+/* ─────────────────── Helpers ─────────────────── */
 
-function SectionTitle({ label }: { label: string }) {
+function GlassCard({ children }: { children: React.ReactNode }) {
+  return <View style={gs.card}>{children}</View>;
+}
+
+function SectionHead({ label }: { label: string }) {
   return (
-    <View style={styles.sectionTitle}>
-      <View style={styles.sectionBar} />
-      <Txt style={styles.sectionLabel}>{label}</Txt>
+    <View style={gs.sectionHead}>
+      <View style={gs.sectionBar} />
+      <Txt style={gs.sectionLabel}>{label}</Txt>
     </View>
   );
 }
 
-function Stat({ label, value, small }: { label: string; value: string; small?: boolean }) {
+function StatItem({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.flex}>
-      <Txt style={[styles.statLabel, ...(small ? [styles.statLabelSmall] : [])]}>{label}</Txt>
-      <Txt style={styles.statValue} numberOfLines={1}>
-        {value}
-      </Txt>
+    <View style={gs.statCol}>
+      <Txt style={gs.statLabel}>{label}</Txt>
+      <Txt style={gs.statValue} numberOfLines={1}>{value}</Txt>
     </View>
   );
 }
 
-function DateRow({ color, label, value }: { color: string; label: string; value: string }) {
-  return (
-    <View style={styles.dateRow}>
-      <View style={styles.dateLeft}>
-        <View style={[styles.dateDot, { backgroundColor: color }]} />
-        <Txt style={styles.dateLabel}>{label}</Txt>
-      </View>
-      <Txt style={styles.dateValue}>{value}</Txt>
-    </View>
-  );
-}
+/* ─────────────────── Styles ─────────────────── */
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.bgOuter },
+const gs = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#060608' },
   flex: { flex: 1 },
 
+  // Glow (Figma 637:3564)
+  glow: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: '100%',
+    height: 350,
+  },
+
+  // Encabezado
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xs,
-    paddingBottom: theme.spacing.sm,
+    gap: 12,
+    paddingHorizontal: 22,
+    paddingTop: 6,
+    paddingBottom: 6,
+    height: 52,
   },
-  iconGhost: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.radius.md,
-    backgroundColor: '#1a1d23',
-    borderWidth: 1,
-    borderColor: theme.colors.borderSubtle,
+  headerTitle: {
+    flex: 1,
+    fontFamily: fonts.glassTitle,
+    fontSize: 19,
+    color: '#f6f6f8',
+  },
+
+  // Scroll
+  scroll: {
+    paddingHorizontal: 22,
+    paddingBottom: 110,
+    gap: 16,
+  },
+
+  // Banner (Figma 635:3570) — valores exactos del diseño
+  banner: {
+    aspectRatio: 346 / 120,
+    borderRadius: 18,
+    overflow: 'hidden',
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 18,
+    flexDirection: 'column',
+    gap: 10,
+  },
+  bannerTop: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
-  headerTitle: { flex: 1, fontFamily: fonts.heading, fontSize: 18, letterSpacing: 0.18, color: theme.colors.textPrimary },
+  // Badge LIGA — compacto
+  ligaBadge: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 7,
+    borderRadius: 5,
+  },
+  ligaLabel: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 8.5,
+    letterSpacing: 0.8,
+    color: '#f6f6f8',
+  },
+  // Badge EN CURSO — compacto, sin punto
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(52,215,127,0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(52,215,127,0.45)',
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  statusLabel: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 8.5,
+    letterSpacing: 0.5,
+    color: '#5fe49a',
+  },
+  bannerBottom: { gap: 3 },
+  bannerTitle: {
+    fontFamily: fonts.glassTitle,
+    fontSize: 22,
+    letterSpacing: -0.3,
+    color: '#f6f6f8',
+  },
+  bannerSub: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 13,
+    color: 'rgba(246,246,248,0.65)',
+  },
 
-  content: { paddingHorizontal: theme.spacing.lg, paddingBottom: 24, gap: theme.spacing.lg },
+  // Barra de tabs (Figma 636:3563)
+  tabBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 40,
+  },
+  tabItem: {
+    alignItems: 'center',
+    paddingBottom: 11,
+  },
+  tabActive: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 13.5,
+    color: '#ff667a',
+  },
+  tabIdle: {
+    fontFamily: fonts.glassBodySemibold,
+    fontSize: 13.5,
+    color: '#999ead',
+  },
+  // Riel inactivo bajo todos los tabs
+  tabRail: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 2.5,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  // Indicador deslizante del tab activo
+  indicator: {
+    position: 'absolute',
+    bottom: 0,
+    height: 2.5,
+    borderRadius: 2,
+    backgroundColor: '#ff2d46',
+    shadowColor: '#ff2d46',
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+  },
 
-  // Hero
-  hero: { height: 128, borderRadius: 16, overflow: 'hidden', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16, justifyContent: 'space-between' },
-  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  ligaTag: { backgroundColor: 'rgba(0,0,0,0.45)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: theme.radius.sm },
-  ligaText: { fontFamily: fonts.heading, fontSize: 11, letterSpacing: 0.88, color: theme.colors.white },
-  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.colors.brandRed, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 99 },
-  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.white },
-  statusText: { fontFamily: fonts.heading, fontSize: 10, letterSpacing: 0.8, color: theme.colors.white },
-  heroBottom: { gap: 3 },
-  heroName: { fontFamily: fonts.headingBold, fontSize: 22, color: theme.colors.white },
-  heroSub: { fontFamily: fonts.bodyMedium, fontSize: 12, color: '#f0d0d4' },
+  // Contenido de la tab activa
+  tabContent: { gap: 14 },
 
-  // Tabs
-  tabs: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  tab: { alignItems: 'center', gap: theme.spacing.sm },
-  tabText: { fontFamily: fonts.label, fontSize: 13, color: theme.colors.textSecondary },
-  tabTextActive: { color: theme.colors.brandRed },
-  tabUnderline: { height: 2, width: 1, borderRadius: 2, backgroundColor: 'transparent' },
-  tabUnderlineActive: { width: 28, backgroundColor: theme.colors.brandRed },
-  divider: { height: 1, backgroundColor: theme.colors.borderSubtle },
-
-  // Tab body
-  tabBody: { gap: theme.spacing.lg },
-
-  // Cards
+  // Tarjeta glass genérica
   card: {
-    backgroundColor: theme.colors.surfaceSunken,
-    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
-    borderColor: theme.colors.borderSubtle,
-    padding: 16,
-    gap: theme.spacing.md,
-  },
-  cardSunk: {
-    backgroundColor: '#121416',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: theme.colors.borderDefault,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
     padding: 16,
     gap: 14,
   },
-  sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
-  sectionBar: { width: 3, height: 12, borderRadius: 2, backgroundColor: theme.colors.brandRed },
-  sectionLabel: { fontFamily: fonts.heading, fontSize: 12, letterSpacing: 1.2, color: theme.colors.textSecondary },
 
-  statRow: { flexDirection: 'row', gap: theme.spacing.md },
-  statLabel: { fontFamily: fonts.body, fontSize: 11, letterSpacing: 0.5, color: theme.colors.textSecondary, marginBottom: 4 },
-  statLabelSmall: { fontSize: 10, letterSpacing: 0.6, color: theme.colors.textTertiary },
-  statValue: { fontFamily: fonts.label, fontSize: 14, color: theme.colors.textPrimary },
+  // Encabezado de sección (barra roja 12×2 + label)
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sectionBar: {
+    width: 12,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: '#ff2d46',
+  },
+  sectionLabel: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 11.5,
+    letterSpacing: 1.2,
+    color: 'rgba(246,246,248,0.6)',
+  },
 
-  paragraph: { fontFamily: fonts.body, fontSize: 13, lineHeight: 20, color: theme.colors.textSecondary },
+  // Grid de stats 2 columnas
+  statGrid: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  statCol: { flex: 1 },
+  statLabel: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 11,
+    color: 'rgba(246,246,248,0.45)',
+    marginBottom: 3,
+  },
+  statValue: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 14,
+    color: '#f6f6f8',
+  },
 
-  // Fechas
-  dateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dateLeft: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
-  dateDot: { width: 7, height: 7, borderRadius: 4 },
-  dateLabel: { fontFamily: fonts.body, fontSize: 13, color: theme.colors.textSecondary },
-  dateValue: { fontFamily: fonts.label, fontSize: 13, color: theme.colors.textPrimary },
-
-  // Reglas
-  fileRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, backgroundColor: '#1a1d23', paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10 },
-  fileIcon: { width: 34, height: 34, borderRadius: 8, backgroundColor: theme.colors.brandRed + '29', alignItems: 'center', justifyContent: 'center' },
-  fileTitle: { fontFamily: fonts.label, fontSize: 13, color: theme.colors.textPrimary },
-  fileSub: { fontFamily: fonts.body, fontSize: 11, color: theme.colors.textTertiary, marginTop: 2 },
-  kvRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  kvLabel: { fontFamily: fonts.body, fontSize: 12, color: theme.colors.textSecondary },
-  kvValue: { fontFamily: fonts.bodyMedium, fontSize: 12, color: theme.colors.textPrimary },
+  // Descripción
+  paragraph: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 13.5,
+    lineHeight: 19.6,
+    color: 'rgba(246,246,248,0.7)',
+  },
 
   // Premio
-  prizeRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md },
-  prizeIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: theme.colors.accentAmber + '29', alignItems: 'center', justifyContent: 'center' },
-  prizeEmoji: { fontSize: 20 },
-  prizeAmount: { fontFamily: fonts.headingBold, fontSize: 18, color: theme.colors.accentAmber },
-  prizeNote: { fontFamily: fonts.body, fontSize: 11, color: theme.colors.textTertiary, marginTop: 2 },
-
-  // Stream
-  linkRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
-  linkIcon: { width: 30, height: 30, borderRadius: 8, backgroundColor: '#1a1d23', alignItems: 'center', justifyContent: 'center' },
-  linkLabel: { fontFamily: fonts.label, fontSize: 13, color: theme.colors.textPrimary },
-  linkValue: { flex: 1, textAlign: 'right', fontFamily: fonts.body, fontSize: 12, color: theme.colors.textSecondary },
-
-  // Placeholder
-  placeholder: { alignItems: 'center', paddingVertical: theme.spacing['5xl'], gap: theme.spacing.xs },
-  placeholderTitle: { fontFamily: fonts.headingBold, fontSize: 18, color: theme.colors.textPrimary },
-  placeholderText: { fontFamily: fonts.body, fontSize: 13, color: theme.colors.textTertiary },
-
-  // Footer
-  footer: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: 14,
-    paddingBottom: 14,
-    backgroundColor: '#0c0d10',
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.borderSubtle,
+  prizeAmount: {
+    fontFamily: fonts.glassTitle,
+    fontSize: 20,
+    color: '#f6c878',
   },
-  footerGhost: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderSubtle,
+  prizeNote: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 12.5,
+    color: 'rgba(246,246,248,0.55)',
+  },
+
+  // Placeholder tabs vacías
+  placeholder: {
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: 8,
   },
-  footerPrimary: {
-    flex: 1,
-    height: 48,
-    borderRadius: 10,
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    backgroundColor: theme.colors.brandRed,
-    alignItems: 'center',
-    justifyContent: 'center',
+  placeholderTitle: {
+    fontFamily: fonts.glassTitle,
+    fontSize: 18,
+    color: '#f6f6f8',
   },
-  footerPrimaryText: { fontFamily: fonts.headingBold, fontSize: 13, letterSpacing: 0.26, color: theme.colors.white },
+  placeholderSub: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 13,
+    color: 'rgba(246,246,248,0.4)',
+  },
 });

@@ -30,6 +30,6 @@ export function FormField({ label, required, children, style }: FormFieldProps) 
 const styles = StyleSheet.create({
   wrap: { gap: theme.spacing.sm },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
-  label: { fontFamily: fonts.label, fontSize: 12, letterSpacing: 0.48, color: theme.colors.textSecondary },
-  star: { fontFamily: fonts.label, fontSize: 12, color: theme.colors.brandRed },
+  label: { fontFamily: fonts.glassBodyBold, fontSize: 11.5, letterSpacing: 1, color: 'rgba(246,246,248,0.5)' },
+  star: { fontFamily: fonts.glassBodyBold, fontSize: 11.5, color: theme.colors.brandRed },
 });

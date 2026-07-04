@@ -54,7 +54,7 @@ export function FormSelect({
           {value || placeholder}
         </Txt>
         <View style={open ? styles.chevUp : undefined}>
-          <IconChevronDown size={18} color={theme.colors.textSecondary} strokeWidth={2} />
+          <IconChevronDown size={18} color="rgba(246,246,248,0.5)" strokeWidth={2} />
         </View>
       </Pressable>
 
@@ -92,28 +92,28 @@ const styles = StyleSheet.create({
   box: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 50,
-    paddingLeft: 14,
-    paddingRight: 12,
-    backgroundColor: theme.colors.surfaceSunken,
+    height: 54,
+    paddingLeft: 16,
+    paddingRight: 14,
+    backgroundColor: theme.colors.glassFill,
     borderWidth: 1,
-    borderColor: theme.colors.borderSubtle,
-    borderRadius: 10,
+    borderColor: theme.colors.glassBorder,
+    borderRadius: 14,
   },
   boxFocus: { borderWidth: 1.5, borderColor: theme.colors.brandRedBorder },
   chevUp: { transform: [{ rotate: '180deg' }] },
-  value: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: theme.colors.textPrimary },
-  placeholder: { color: theme.colors.textTertiary },
+  value: { flex: 1, fontFamily: fonts.glassBodyMedium, fontSize: 15, color: '#f6f6f8' },
+  placeholder: { color: theme.colors.textOnGlassFaint },
 
   // Menú flotante (overlay)
   menu: {
     position: 'absolute',
     padding: 6,
     gap: 2,
-    backgroundColor: theme.colors.surface1,
+    backgroundColor: 'rgba(20,20,24,0.98)',
     borderWidth: 1,
-    borderColor: theme.colors.borderSubtle,
-    borderRadius: 10,
+    borderColor: theme.colors.glassBorderStrong,
+    borderRadius: 14,
     shadowColor: '#000',
     shadowOpacity: 0.45,
     shadowRadius: 24,

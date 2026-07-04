@@ -67,5 +67,4 @@ export type { BottomSheetHandle } from './BottomSheet';
 export { OtpInput } from './OtpInput';
 export { PasswordRules } from './PasswordRules';
 export { ConfirmModal } from './ConfirmModal';
-export { DangerConfirm } from './DangerConfirm';
 export { ProgressBar } from './ProgressBar';
