@@ -25,7 +25,48 @@ export interface LeagueEvent {
   dateLabel?: string;
 }
 
+export interface EventTeam {
+  id: string;
+  initials: string;
+  color: string;
+  name: string;
+  org: string;
+  rosterCurrent: number;
+  rosterMax: number;
+  status: 'pending' | 'active';
+}
+
+export interface EventStaff {
+  id: string;
+  initials: string;
+  /** Color de acento del avatar (tinte + borde + texto de iniciales). */
+  color: string;
+  name: string;
+  /** Sub-rol descriptivo (ej. "Árbitro principal", "Caster · Diseño"). */
+  subRole: string;
+  status: 'active' | 'inactive';
+}
+
+/** Usuario disponible para ser asignado como staff. */
+export interface StaffCandidate {
+  id: string;
+  initials: string;
+  color: string;
+  name: string;
+  email: string;
+}
+
 export interface EventsService {
   /** Lista completa de eventos (las cards "en curso" se resaltan en la UI). */
   getEvents(): Promise<LeagueEvent[]>;
+  /** Equipos inscritos/pendientes de aprobación para un evento. */
+  getEventTeams(eventId: string): Promise<EventTeam[]>;
+  /** Staff asignado a un evento. */
+  getEventStaff(eventId: string): Promise<EventStaff[]>;
+  /** Usuarios disponibles para agregar como staff (no asignados aún). */
+  getStaffCandidates(eventId: string): Promise<StaffCandidate[]>;
+  /** Agrega un candidato como staff del evento con el sub-rol indicado. */
+  addEventStaff(eventId: string, candidate: StaffCandidate, subRole: string): Promise<EventStaff>;
+  /** Elimina un miembro del staff de un evento. */
+  removeEventStaff(eventId: string, staffId: string): Promise<void>;
 }

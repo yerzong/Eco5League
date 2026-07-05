@@ -1,12 +1,14 @@
 /**
  * Fila de staff (rediseño glass): avatar coloreado + nombre/sub-roles + chip de
  * estado. Genérica: recibe props ya formateadas. (SAN ✦ Staff)
+ * Cuando se pasa `onRemove`, muestra un botón de papelera en lugar del chip.
  */
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { theme } from '@/design-system/theme';
 import { fonts } from '@/design-system/tokens/typography';
 import { withAlpha } from '@/design-system/colorUtils';
+import { IconTrash } from '@/design-system/icons';
 import { Txt } from './Txt';
 
 interface GlassStaffRowProps {
@@ -16,9 +18,11 @@ interface GlassStaffRowProps {
   name: string;
   /** Sub-roles ya unidos (ej. "Caster · Moderador"). */
   subtitle: string;
-  statusLabel: string;
-  statusColor: string;
+  statusLabel?: string;
+  statusColor?: string;
   onPress?: () => void;
+  /** Cuando se pasa, reemplaza el chip de estado con un botón de eliminar. */
+  onRemove?: () => void;
 }
 
 export function GlassStaffRow({
@@ -29,6 +33,7 @@ export function GlassStaffRow({
   statusLabel,
   statusColor,
   onPress,
+  onRemove,
 }: GlassStaffRowProps) {
   return (
     <Pressable style={styles.row} onPress={onPress}>
@@ -47,14 +52,20 @@ export function GlassStaffRow({
           {subtitle}
         </Txt>
       </View>
-      <View
-        style={[
-          styles.status,
-          { backgroundColor: withAlpha(statusColor, 0.14), borderColor: withAlpha(statusColor, 0.35) },
-        ]}>
-        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-        <Txt style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Txt>
-      </View>
+      {onRemove ? (
+        <Pressable style={styles.removeBtn} onPress={onRemove} hitSlop={10}>
+          <IconTrash size={18} color="rgba(255,95,115,0.75)" strokeWidth={1.8} />
+        </Pressable>
+      ) : statusLabel && statusColor ? (
+        <View
+          style={[
+            styles.status,
+            { backgroundColor: withAlpha(statusColor, 0.14), borderColor: withAlpha(statusColor, 0.35) },
+          ]}>
+          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+          <Txt style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Txt>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -80,9 +91,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: { fontFamily: fonts.glassTitle, fontSize: 15 },
-  nameCol: { flex: 1, gap: 3 },
-  name: { fontFamily: fonts.glassBodySemibold, fontSize: 15, color: '#f6f6f8' },
-  sub: { fontFamily: fonts.glassBodyMedium, fontSize: 12, color: 'rgba(246,246,248,0.5)' },
+  nameCol: { flex: 1, gap: 3, overflow: 'hidden' },
+  name: { fontFamily: fonts.glassBodySemibold, fontSize: 15, lineHeight: 18, color: '#f6f6f8' },
+  sub: { fontFamily: fonts.glassBodyMedium, fontSize: 12, lineHeight: 15, color: 'rgba(246,246,248,0.5)' },
+  removeBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,95,115,0.1)',
+  },
   status: {
     flexDirection: 'row',
     alignItems: 'center',

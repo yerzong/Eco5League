@@ -117,6 +117,16 @@ export function EventosScreen() {
   const [viewing, setViewing] = useState<LeagueEvent | null>(null);
   const loading = useTabLoading();
 
+  /** DEV: auto-abre el primer evento en Equipos al recargar (quitar antes de producción). */
+  const DEV_OPEN_GESTION = true;
+  useEffect(() => {
+    if (!DEV_OPEN_GESTION) return;
+    eventsService.getEvents().then(evts => {
+      if (evts.length > 0) setViewing(evts[0]);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     eventsService.getEvents().then(setEvents);
   }, []);
@@ -205,6 +215,7 @@ export function EventosScreen() {
         visible={!!viewing}
         event={viewing}
         onClose={() => setViewing(null)}
+        initialTab={DEV_OPEN_GESTION ? 'Equipos' : undefined}
         // Editar se abre anidado DENTRO de gestión (push horizontal encima).
         onDelete={ev => {
           setEvents(es => es.filter(e => e.id !== ev.id));

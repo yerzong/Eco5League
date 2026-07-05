@@ -13,16 +13,20 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Ellipse, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { Txt } from '@/design-system/components';
+import { Fab, Txt } from '@/design-system/components';
 import {
   IconChevronLeft,
   IconPencil,
 } from '@/design-system/icons';
 import { fonts } from '@/design-system/tokens/typography';
-import type { LeagueEvent } from '@/services';
+import type { EventTeam, LeagueEvent } from '@/services';
+import { AgregarStaffSheet } from './AgregarStaffSheet';
 import { EditarEventoModal } from './EditarEventoScreen';
+import { EventoEquiposTab } from './EventoEquiposTab';
+import { EventoStaffTab } from './EventoStaffTab';
+import { EventoTeamDetailModal } from './EventoTeamDetailModal';
 
 const TABS = ['Resumen', 'Equipos', 'Staff', 'Brackets', 'Partidos'] as const;
 type TabKey = (typeof TABS)[number];
@@ -33,6 +37,8 @@ interface EventoGestionModalProps {
   onClose: () => void;
   /** Se llama tras confirmar la eliminación del evento. */
   onDelete?: (event: LeagueEvent) => void;
+  /** Tab que se muestra al abrir (por defecto 'Resumen'). */
+  initialTab?: TabKey;
 }
 
 export function EventoGestionModal({
@@ -40,15 +46,20 @@ export function EventoGestionModal({
   event,
   onClose,
   onDelete,
+  initialTab,
 }: EventoGestionModalProps) {
-  const [tab, setTab] = useState<TabKey>('Resumen');
-  // Editar se abre ENCIMA (anidado), deslizándose de derecha a izquierda.
+  // TODO: quitar cuando se termine el maquetado del módulo Staff
+  const [tab, setTab] = useState<TabKey>(initialTab ?? 'Staff');
   const [editing, setEditing] = useState(false);
+  const [detailTeam, setDetailTeam] = useState<EventTeam | null>(null);
+  const [addingStaff, setAddingStaff] = useState(false);
+  const [staffRefreshKey, setStaffRefreshKey] = useState(0);
+  const insets = useSafeAreaInsets();
   const activeIndex = TABS.indexOf(tab);
 
-  // Al cerrarse la gestión, reseteamos el editor para la próxima apertura.
+  // Al cerrarse la gestión, reseteamos overlays para la próxima apertura.
   useEffect(() => {
-    if (!visible) setEditing(false);
+    if (!visible) { setEditing(false); setDetailTeam(null); setAddingStaff(false); }
   }, [visible]);
 
   // Subrayado deslizante: medimos cada tab y animamos un indicador único.
@@ -181,6 +192,10 @@ export function EventoGestionModal({
                 }}>
                 {tab === 'Resumen' ? (
                   <ResumenTab event={event} />
+                ) : tab === 'Equipos' ? (
+                  <EventoEquiposTab event={event} onTeamDetail={setDetailTeam} />
+                ) : tab === 'Staff' ? (
+                  <EventoStaffTab event={event} refreshKey={staffRefreshKey} />
                 ) : (
                   <Placeholder tab={tab} />
                 )}
@@ -189,6 +204,38 @@ export function EventoGestionModal({
           </SafeAreaView>
         </View>
       </SafeAreaProvider>
+
+      {/* FAB "Agregar staff" — solo visible en el tab Staff */}
+      {tab === 'Staff' ? (
+        <Fab
+          style={{
+            position: 'absolute',
+            right: 24,
+            bottom: Math.max(insets.bottom, 16) + 16,
+          }}
+          onPress={() => setAddingStaff(true)}
+        />
+      ) : null}
+
+      {/* Sheet de agregar staff */}
+      {addingStaff && event ? (
+        <AgregarStaffSheet
+          eventId={event.id}
+          onAdded={() => {
+            setStaffRefreshKey(k => k + 1);
+            setAddingStaff(false);
+          }}
+          onClose={() => setAddingStaff(false)}
+        />
+      ) : null}
+
+      {/* Detalle de equipo — deslizamiento derecha→izquierda sobre gestión */}
+      {detailTeam ? (
+        <EventoTeamDetailModal
+          team={detailTeam}
+          onClose={() => setDetailTeam(null)}
+        />
+      ) : null}
 
       {/* Editar evento — anidado, entra de derecha a izquierda encima */}
       <EditarEventoModal

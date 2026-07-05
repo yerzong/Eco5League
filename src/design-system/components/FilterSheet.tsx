@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.glassTitle, fontSize: 24, letterSpacing: -0.4, color: '#f6f6f8' },
   clear: { fontFamily: fonts.glassBodyBold, fontSize: 14, color: '#ff808f' },
 
-  body: { paddingBottom: 8 },
+  body: { paddingBottom: 24 },
 
   groupLabel: {
     fontFamily: fonts.glassBodyBold,

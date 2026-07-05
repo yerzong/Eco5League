@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   initials: { fontFamily: fonts.glassTitle, fontSize: 13 },
   nameCol: { flex: 1, gap: 2 },
-  name: { fontFamily: fonts.glassBodySemibold, fontSize: 14, color: '#f6f6f8' },
-  sub: { fontFamily: fonts.glassBodyMedium, fontSize: 11, color: 'rgba(246,246,248,0.5)' },
+  name: { fontFamily: fonts.glassBodySemibold, fontSize: 14, lineHeight: 17, color: '#f6f6f8' },
+  sub: { fontFamily: fonts.glassBodyMedium, fontSize: 11, lineHeight: 14, color: 'rgba(246,246,248,0.5)' },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
 });
