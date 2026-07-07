@@ -55,6 +55,7 @@ export { FormField } from './FormField';
 export { FormInput } from './FormInput';
 export { FormSelect } from './FormSelect';
 export { FormDate } from './FormDate';
+export { FormTime } from './FormTime';
 export { CoverUpload } from './CoverUpload';
 export { PdfUpload } from './PdfUpload';
 export type { PdfFile } from './PdfUpload';

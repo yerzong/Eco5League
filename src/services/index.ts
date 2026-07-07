@@ -63,7 +63,10 @@ export type {
   ActivityItem,
 } from './dashboard/types';
 export type { NotificationsService, NotificationItem } from './notifications/types';
-export type { EventsService, LeagueEvent, EventTeam, EventStaff, StaffCandidate } from './events/types';
+export type {
+  EventsService, LeagueEvent, EventTeam, EventStaff, StaffCandidate,
+  EventMatch, MatchTeam, MatchStatus, MapStatus, EventMatchMap,
+} from './events/types';
 export type { StaffService, StaffMember, StaffRole, StaffStatus } from './staff/types';
 export type { TeamsService, Team, TeamStatus } from './teams/types';
 export type { UsersService, AppUser, UserStatus, UsersSummary } from './users/types';

@@ -58,6 +58,7 @@ export {
   IconMessage,
   IconAlertCircle,
   IconRefresh,
+  IconClock,
 } from '@tabler/icons-react-native';
 
 export type { IconProps } from '@tabler/icons-react-native';

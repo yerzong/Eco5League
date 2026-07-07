@@ -56,6 +56,50 @@ export interface StaffCandidate {
   email: string;
 }
 
+export type MatchStatus = 'live' | 'upcoming' | 'finished';
+
+export type MapStatus = 'pending' | 'live' | 'won_t1' | 'won_t2';
+
+export interface EventMatchMap {
+  number: number;
+  status: MapStatus;
+}
+
+/** Datos mínimos de un equipo dentro de un partido (snapshot). */
+export interface MatchTeam {
+  initials: string;
+  color: string;
+  name: string;
+}
+
+export interface EventMatch {
+  id: string;
+  status: MatchStatus;
+  /** Contexto corto para la lista (ej. "Grupo A · Mapa 2/3"). */
+  context: string;
+  /** Etiqueta de la columna izquierda: hora ("18:00") o jornada ("J1"). */
+  roundLabel: string;
+  team1: MatchTeam;
+  team2: MatchTeam;
+  /** null si el partido aún no ha iniciado. */
+  score1: number | null;
+  score2: number | null;
+  /** Formato del enfrentamiento (ej. "BO3", "BO5"). */
+  format: string;
+  /** Resultados por mapa. */
+  maps: EventMatchMap[];
+  /** Fecha formateada para mostrar en el detalle (ej. "Hoy · 18:00"). */
+  dateLabel: string;
+  /** Fecha para el formulario de edición (ej. "04 feb 2026"). */
+  scheduledDate: string;
+  /** Hora para el formulario de edición (ej. "18:00"). */
+  scheduledTime: string;
+  /** Info de transmisión (ej. "En vivo · Twitch", "Ver repetición (VOD)"). */
+  streamLabel: string;
+  /** Contexto completo para el detalle (ej. "Grupo A · Jornada 2 · BO3"). */
+  detailContext: string;
+}
+
 export interface EventsService {
   /** Lista completa de eventos (las cards "en curso" se resaltan en la UI). */
   getEvents(): Promise<LeagueEvent[]>;
@@ -69,4 +113,6 @@ export interface EventsService {
   addEventStaff(eventId: string, candidate: StaffCandidate, subRole: string): Promise<EventStaff>;
   /** Elimina un miembro del staff de un evento. */
   removeEventStaff(eventId: string, staffId: string): Promise<void>;
+  /** Partidos de un evento (en vivo, próximos y finalizados). */
+  getEventMatches(eventId: string): Promise<EventMatch[]>;
 }

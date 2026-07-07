@@ -31,6 +31,7 @@ import { PublicarCuadroSheet } from './PublicarCuadroSheet';
 import { EventoEquiposTab } from './EventoEquiposTab';
 import { EventoStaffTab } from './EventoStaffTab';
 import { EventoTeamDetailModal } from './EventoTeamDetailModal';
+import { EventoPartidosTab } from './EventoPartidosTab';
 
 const TABS = ['Resumen', 'Equipos', 'Staff', 'Brackets', 'Partidos'] as const;
 type TabKey = (typeof TABS)[number];
@@ -221,6 +222,8 @@ export function EventoGestionModal({
                   <EventoStaffTab event={event} refreshKey={staffRefreshKey} />
                 ) : tab === 'Brackets' ? (
                   <EventoBracketsTab event={event} published={bracketPublished} />
+                ) : tab === 'Partidos' ? (
+                  <EventoPartidosTab event={event} />
                 ) : (
                   <Placeholder tab={tab} />
                 )}

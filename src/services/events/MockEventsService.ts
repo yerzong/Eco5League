@@ -2,7 +2,7 @@
  * Implementación SIMULADA del servicio de eventos (maqueta SA-M02).
  * Datos dummy variados para que la búsqueda y los filtros se aprecien.
  */
-import type { EventsService, EventStaff, EventTeam, LeagueEvent, StaffCandidate } from './types';
+import type { EventMatch, EventsService, EventStaff, EventTeam, LeagueEvent, StaffCandidate } from './types';
 
 /** Acentos de cover por juego (fieles al diseño v2). */
 const ACCENT = {
@@ -112,6 +112,116 @@ const EVENT_STAFF_INIT: Record<string, EventStaff[]> = {
   ],
 };
 
+const EVENT_MATCHES: Record<string, EventMatch[]> = {
+  e1: [
+    {
+      id: 'em1', status: 'live',
+      context: 'Grupo A · Mapa 2/3', roundLabel: 'M2',
+      team1: { initials: 'TO', color: '#c8102e', name: 'Team Ozone' },
+      team2: { initials: 'RG', color: '#b04530', name: 'Red Gaming' },
+      score1: 1, score2: 1,
+      format: 'BO3',
+      maps: [
+        { number: 1, status: 'won_t1' },
+        { number: 2, status: 'live' },
+        { number: 3, status: 'pending' },
+      ],
+      dateLabel: 'Hoy · 18:00',
+      scheduledDate: '01/02/2026',
+      scheduledTime: '18:00',
+      streamLabel: 'En vivo · Twitch',
+      detailContext: 'Grupo A · Jornada 2 · BO3',
+    },
+    {
+      id: 'em2', status: 'live',
+      context: 'Grupo B · Mapa 2/3', roundLabel: 'M2',
+      team1: { initials: 'SL', color: '#3e9c5f', name: 'Steel Legion' },
+      team2: { initials: 'NW', color: '#6b7386', name: 'NightWolves' },
+      score1: 0, score2: 1,
+      format: 'BO3',
+      maps: [
+        { number: 1, status: 'won_t2' },
+        { number: 2, status: 'live' },
+        { number: 3, status: 'pending' },
+      ],
+      dateLabel: 'Hoy · 18:30',
+      scheduledDate: '01/02/2026',
+      scheduledTime: '18:30',
+      streamLabel: 'En vivo · Twitch',
+      detailContext: 'Grupo B · Jornada 2 · BO3',
+    },
+    {
+      id: 'em3', status: 'upcoming',
+      context: 'Grupo A', roundLabel: '18:00',
+      team1: { initials: 'TO', color: '#c8102e', name: 'Team Ozone' },
+      team2: { initials: 'KX', color: '#29a3a3', name: 'Kraken X' },
+      score1: null, score2: null,
+      format: 'BO3',
+      maps: [
+        { number: 1, status: 'pending' },
+        { number: 2, status: 'pending' },
+      ],
+      dateLabel: '04 feb · 18:00',
+      scheduledDate: '04/02/2026',
+      scheduledTime: '18:00',
+      streamLabel: 'Disponible al iniciar',
+      detailContext: 'Grupo A · Jornada 3',
+    },
+    {
+      id: 'em4', status: 'upcoming',
+      context: 'Grupo B', roundLabel: '19:30',
+      team1: { initials: 'SL', color: '#3e9c5f', name: 'Steel Legion' },
+      team2: { initials: 'RG', color: '#b04530', name: 'Red Gaming' },
+      score1: null, score2: null,
+      format: 'BO3',
+      maps: [
+        { number: 1, status: 'pending' },
+        { number: 2, status: 'pending' },
+      ],
+      dateLabel: '04 feb · 19:30',
+      scheduledDate: '04/02/2026',
+      scheduledTime: '19:30',
+      streamLabel: 'Disponible al iniciar',
+      detailContext: 'Grupo B · Jornada 3',
+    },
+    {
+      id: 'em5', status: 'finished',
+      context: 'Grupo A', roundLabel: 'J1',
+      team1: { initials: 'TO', color: '#c8102e', name: 'Team Ozone' },
+      team2: { initials: 'NW', color: '#6b7386', name: 'NightWolves' },
+      score1: 2, score2: 1,
+      format: 'BO3',
+      maps: [
+        { number: 1, status: 'won_t1' },
+        { number: 2, status: 'won_t2' },
+        { number: 3, status: 'won_t1' },
+      ],
+      dateLabel: '01 feb · 18:00',
+      scheduledDate: '01/02/2026',
+      scheduledTime: '18:00',
+      streamLabel: 'Ver repetición (VOD)',
+      detailContext: 'Grupo A · Jornada 1 · BO3',
+    },
+    {
+      id: 'em6', status: 'finished',
+      context: 'Grupo B', roundLabel: 'J1',
+      team1: { initials: 'RG', color: '#b04530', name: 'Red Gaming' },
+      team2: { initials: 'KX', color: '#29a3a3', name: 'Kraken X' },
+      score1: 2, score2: 0,
+      format: 'BO3',
+      maps: [
+        { number: 1, status: 'won_t1' },
+        { number: 2, status: 'won_t1' },
+      ],
+      dateLabel: '01 feb · 20:00',
+      scheduledDate: '01/02/2026',
+      scheduledTime: '20:00',
+      streamLabel: 'Ver repetición (VOD)',
+      detailContext: 'Grupo B · Jornada 1 · BO3',
+    },
+  ],
+};
+
 const ALL_STAFF_CANDIDATES: StaffCandidate[] = [
   { id: 'sc1', initials: 'SR', color: '#ff808f', name: 'Sofía Ramírez',    email: 'sofia.ramirez@eco5.gg'    },
   { id: 'sc2', initials: 'MA', color: '#7ab8ff', name: 'Marcos Ávila',     email: 'marcos.avila@eco5.gg'     },
@@ -168,5 +278,9 @@ export class MockEventsService implements EventsService {
     if (this.eventStaff[eventId]) {
       this.eventStaff[eventId] = this.eventStaff[eventId].filter(s => s.id !== staffId);
     }
+  }
+
+  async getEventMatches(eventId: string): Promise<EventMatch[]> {
+    return EVENT_MATCHES[eventId] ?? [];
   }
 }
