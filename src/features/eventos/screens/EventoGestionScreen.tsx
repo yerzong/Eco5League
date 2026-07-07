@@ -17,6 +17,7 @@ import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-
 import Svg, { Defs, Ellipse, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { ConfirmDialog, Fab, Txt } from '@/design-system/components';
 import {
+  IconCheck,
   IconChevronLeft,
   IconPencil,
   IconRefresh,
@@ -59,7 +60,8 @@ export function EventoGestionModal({
   const [staffRefreshKey, setStaffRefreshKey] = useState(0);
   const [regenConfirmVisible, setRegenConfirmVisible] = useState(false);
   const [publishSheetVisible, setPublishSheetVisible] = useState(false);
-  const [bracketPublished, setBracketPublished] = useState(false);
+  const [showBracketSuccess, setShowBracketSuccess]   = useState(false);
+  const [bracketPublished, setBracketPublished]       = useState(false);
   const insets = useSafeAreaInsets();
   const activeIndex = TABS.indexOf(tab);
 
@@ -71,6 +73,8 @@ export function EventoGestionModal({
       setAddingStaff(false);
       setRegenConfirmVisible(false);
       setPublishSheetVisible(false);
+      setShowBracketSuccess(false);
+      setBracketPublished(false);
     }
   }, [visible]);
 
@@ -258,12 +262,21 @@ export function EventoGestionModal({
       {publishSheetVisible ? (
         <PublicarCuadroSheet
           onPublish={() => {
-            setBracketPublished(true);
             setPublishSheetVisible(false);
+            setShowBracketSuccess(true);
           }}
           onClose={() => setPublishSheetVisible(false)}
         />
       ) : null}
+
+      {/* Overlay de éxito — transición animada antes de mostrar el cuadro */}
+      <BracketSuccessOverlay
+        visible={showBracketSuccess}
+        onDone={() => {
+          setShowBracketSuccess(false);
+          setBracketPublished(true);
+        }}
+      />
 
       {/* FAB "Agregar staff" — solo visible en el tab Staff */}
       {tab === 'Staff' ? (
@@ -719,5 +732,123 @@ const gs = StyleSheet.create({
     fontFamily: fonts.glassBodyMedium,
     fontSize: 13,
     color: 'rgba(246,246,248,0.4)',
+  },
+});
+
+/* ─────────────────── Overlay éxito "Cuadro publicado" ─────────────────── */
+
+interface BracketSuccessOverlayProps {
+  visible: boolean;
+  onDone: () => void;
+}
+
+function BracketSuccessOverlay({ visible, onDone }: BracketSuccessOverlayProps) {
+  const circleScale  = useRef(new Animated.Value(0.35)).current;
+  const checkOpacity = useRef(new Animated.Value(0)).current;
+  const textOpacity  = useRef(new Animated.Value(0)).current;
+  const textSlide    = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    if (!visible) return;
+
+    circleScale.setValue(0.35);
+    checkOpacity.setValue(0);
+    textOpacity.setValue(0);
+    textSlide.setValue(20);
+
+    let timer: ReturnType<typeof setTimeout>;
+
+    Animated.sequence([
+      Animated.spring(circleScale, {
+        toValue: 1,
+        damping: 8,
+        stiffness: 150,
+        mass: 0.9,
+        useNativeDriver: true,
+      }),
+      Animated.timing(checkOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.parallel([
+        Animated.timing(textOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(textSlide, {
+          toValue: 0,
+          damping: 18,
+          stiffness: 200,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start(() => {
+      timer = setTimeout(onDone, 900);
+    });
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent>
+      <View style={ov.root}>
+        <Animated.View style={[ov.circle, { transform: [{ scale: circleScale }] }]}>
+          <Animated.View style={{ opacity: checkOpacity }}>
+            <IconCheck size={40} color="#34d77f" strokeWidth={2.4} />
+          </Animated.View>
+        </Animated.View>
+
+        <Animated.View
+          style={[ov.textBlock, { opacity: textOpacity, transform: [{ translateY: textSlide }] }]}>
+          <Txt style={ov.title}>¡Cuadro publicado!</Txt>
+          <Txt style={ov.subtitle}>Los equipos ya fueron notificados.</Txt>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+const ov = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: 'rgba(6,6,8,0.97)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 26,
+  },
+  circle: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: 'rgba(52,215,127,0.14)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(52,215,127,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#34d77f',
+    shadowOpacity: 0.55,
+    shadowRadius: 32,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 14,
+  },
+  textBlock: { alignItems: 'center', gap: 8 },
+  title: {
+    fontFamily: fonts.glassTitle,
+    fontSize: 28,
+    color: '#f6f6f8',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 14,
+    color: 'rgba(246,246,248,0.55)',
+    textAlign: 'center',
   },
 });

@@ -1,5 +1,5 @@
 /**
- * EV ✦ Tab "Brackets" — dos estados según el ciclo del evento.
+ * EV ✦ Tab "Brackets" — tres estados según el ciclo del evento.
  *
  * Estado A — Inscripciones abiertas (Figma 665:5039):
  *   Aviso ámbar · contador de equipos · skeleton preview del cuadro.
@@ -9,12 +9,16 @@
  *   seed rows · label playoffs. El footer CTA (Regenerar / Publicar) se
  *   renderiza desde EventoGestionScreen a nivel root para quedar fijo.
  *
+ * Estado C — Cuadro publicado (Figma 633:29094):
+ *   Pill verde · tabla de grupos con standings (PJ/V/D/PTS) · brackets
+ *   de playoffs (semis + gran final).
+ *
  * Exporta también `BracketFooter` para que el padre lo monte como overlay.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
-import { IconAlertCircle, IconCheck } from '@/design-system/icons';
+import { IconAlertCircle } from '@/design-system/icons';
 import { fonts } from '@/design-system/tokens/typography';
 import { withAlpha } from '@/design-system/colorUtils';
 import { Txt } from '@/design-system/components/Txt';
@@ -37,16 +41,38 @@ interface BracketGroup {
 
 type SeedMode = 'ranking' | 'random';
 
-/* ─── Helpers de lógica pura (sin UI) ─── */
+/** Equipo con estadísticas de partidos para la vista publicada. */
+interface StandingTeam extends SeededTeam {
+  pj: number;
+  v: number;
+  d: number;
+  pts: number;
+}
 
-/** Convierte una lista de equipos en dos grupos bracket (A: impares, B: pares). */
+interface StandingGroup {
+  name: string;
+  teams: StandingTeam[];
+}
+
+interface MatchupTeam {
+  initials: string;
+  color: string;
+  seedLabel: string;
+  name: string;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Lógica pura — sin UI, sin efectos secundarios
+═══════════════════════════════════════════════════════════════════ */
+
+/** Distribuye equipos en dos grupos bracket (A: seeds impares, B: pares). */
 function buildGroups(teams: EventTeam[]): BracketGroup[] {
   const sorted = [...teams].sort((a, b) => a.name.localeCompare(b.name));
   const seeded: SeededTeam[] = sorted.map((t, i) => ({
     ...t,
     seed: i + 1,
     record: '0-0-0',
-    isTopSeed: i < 2,  // seeds 1 y 2 destacan en dorado
+    isTopSeed: i < 2,
   }));
 
   return [
@@ -55,10 +81,50 @@ function buildGroups(teams: EventTeam[]): BracketGroup[] {
   ];
 }
 
-/** Extrae la fecha de cierre del dateLabel del evento (ej. "Cierra 25 jun" → "25 jun"). */
+/** Extrae la fecha de inicio/cierre del dateLabel del evento. */
 function extractCloseDate(dateLabel?: string): string {
   return dateLabel?.replace(/^Cierra\s+/i, '') ?? '—';
 }
+
+/** Estadísticas de ejemplo por posición en el grupo. */
+const MOCK_STATS = [
+  { pj: 3, v: 3, d: 0, pts: 9 },
+  { pj: 3, v: 2, d: 1, pts: 6 },
+  { pj: 3, v: 1, d: 2, pts: 3 },
+  { pj: 3, v: 0, d: 3, pts: 0 },
+] as const;
+
+/** Enriquece los grupos con standings de ejemplo para la vista publicada. */
+function buildPublishedGroups(teams: EventTeam[]): StandingGroup[] {
+  return buildGroups(teams).map(g => ({
+    name: g.name,
+    teams: g.teams.map((t, i) => ({
+      ...t,
+      ...(MOCK_STATS[i] ?? { pj: 0, v: 0, d: 0, pts: 0 }),
+    })),
+  }));
+}
+
+/** Deriva los cruces de semifinales: 1ºA vs 2ºB y 1ºB vs 2ºA. */
+function buildSemifinals(groups: StandingGroup[]): [MatchupTeam, MatchupTeam][] {
+  const a = groups[0]?.teams;
+  const b = groups[1]?.teams;
+  if (!a?.[0] || !a[1] || !b?.[0] || !b[1]) return [];
+
+  const toMatchup = (t: StandingTeam, seedLabel: string): MatchupTeam => ({
+    initials: t.initials, color: t.color, seedLabel, name: t.name,
+  });
+
+  return [
+    [toMatchup(a[0], '1ºA'), toMatchup(b[1], '2ºB')],
+    [toMatchup(b[0], '1ºB'), toMatchup(a[1], '2ºA')],
+  ];
+}
+
+const FINAL_PLACEHOLDERS: [MatchupTeam, MatchupTeam] = [
+  { initials: '?', color: '#6b7386', seedLabel: 'SF1', name: 'Ganador SF1' },
+  { initials: '?', color: '#6b7386', seedLabel: 'SF2', name: 'Ganador SF2' },
+];
 
 /* ═══════════════════════════════════════════════════════════════════
    Componente raíz del tab
@@ -66,13 +132,12 @@ function extractCloseDate(dateLabel?: string): string {
 
 export interface EventoBracketsTabProps {
   event: LeagueEvent | null;
-  /** true cuando el cuadro ya fue publicado → muestra pantalla de éxito. */
+  /** true cuando el cuadro ya fue publicado → muestra tabla de grupos + playoffs. */
   published?: boolean;
-  onViewPublished?: () => void;
 }
 
-export function EventoBracketsTab({ event, published, onViewPublished }: EventoBracketsTabProps) {
-  if (published) return <PublishedView event={event} onView={onViewPublished} />;
+export function EventoBracketsTab({ event, published }: EventoBracketsTabProps) {
+  if (published) return <BracketPublishedView event={event} />;
 
   const inscripcionesAbiertas =
     event?.status === 'inscripcion' || event?.status === 'proximo';
@@ -147,9 +212,7 @@ function DraftView({ event }: { event: LeagueEvent | null }) {
 
       <Txt style={s.sectionLabel}>SEEDING</Txt>
       <SeedingControl value={seedMode} onChange={setSeedMode} />
-      <Txt style={s.seedingDesc}>
-        {SEEDING_DESCRIPTIONS[seedMode]}
-      </Txt>
+      <Txt style={s.seedingDesc}>{SEEDING_DESCRIPTIONS[seedMode]}</Txt>
 
       {groups.map(g => (
         <GroupCard key={g.name} group={g} />
@@ -166,10 +229,52 @@ const SEEDING_DESCRIPTIONS: Record<SeedMode, string> = {
 };
 
 /* ═══════════════════════════════════════════════════════════════════
-   Sub-componentes genéricos
+   Vista C — Cuadro publicado (Figma 633:29094)
 ═══════════════════════════════════════════════════════════════════ */
 
-/** Pill de alerta ámbar "BORRADOR · aún no es visible…". */
+function BracketPublishedView({ event }: { event: LeagueEvent | null }) {
+  const [groups, setGroups] = useState<StandingGroup[]>([]);
+
+  useEffect(() => {
+    if (!event) return;
+    eventsService.getEventTeams(event.id).then(teams => {
+      setGroups(buildPublishedGroups(teams));
+    });
+  }, [event]);
+
+  const startDate = extractCloseDate(event?.dateLabel);
+  const semis     = buildSemifinals(groups);
+
+  return (
+    <View style={s.root}>
+      {/* Pill verde — estado publicado */}
+      <View style={s.pubPill}>
+        <View style={s.pubPillDot} />
+        <Txt style={s.pubPillText}>Cuadro publicado · inicia {startDate}</Txt>
+      </View>
+
+      {/* ── Fase de grupos ── */}
+      <SectionEyebrow label="FASE DE GRUPOS · top 2 clasifica" />
+      {groups.map(g => (
+        <GroupStandingsCard key={g.name} group={g} />
+      ))}
+
+      {/* ── Playoffs ── */}
+      <SectionEyebrow label="PLAYOFFS · eliminación directa" />
+      <Txt style={s.roundLabel}>SEMIFINALES · BO5 · 06 feb</Txt>
+      {semis.map((pair, i) => (
+        <MatchupCard key={i} team1={pair[0]} team2={pair[1]} />
+      ))}
+      <Txt style={s.roundLabel}>GRAN FINAL · BO5 · 08 feb</Txt>
+      <MatchupCard team1={FINAL_PLACEHOLDERS[0]} team2={FINAL_PLACEHOLDERS[1]} />
+    </View>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Sub-componentes — Vista B (borrador)
+═══════════════════════════════════════════════════════════════════ */
+
 function DraftBanner() {
   return (
     <View style={s.draftBanner} accessibilityRole="alert">
@@ -179,7 +284,6 @@ function DraftBanner() {
   );
 }
 
-/** Badge ámbar reutilizable (ej. "Inscripciones"). */
 function AmberBadge({ label }: { label: string }) {
   return (
     <View style={s.amberBadge}>
@@ -188,7 +292,6 @@ function AmberBadge({ label }: { label: string }) {
   );
 }
 
-/** Segmented control "Por ranking / Aleatorio" con píldora deslizante. */
 interface SeedingControlProps {
   value: SeedMode;
   onChange: (v: SeedMode) => void;
@@ -228,14 +331,10 @@ function SeedingControl({ value, onChange }: SeedingControlProps) {
       accessibilityRole="radiogroup"
       onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}>
 
-      {/* Píldora deslizante detrás de las opciones */}
       {containerWidth > 0 ? (
-        <Animated.View
-          style={[s.segPill, { width: optionWidth, left: pillLeft }]}
-        />
+        <Animated.View style={[s.segPill, { width: optionWidth, left: pillLeft }]} />
       ) : null}
 
-      {/* Opciones: transparentes, texto encima de la píldora */}
       {SEED_OPTIONS.map(opt => (
         <Pressable
           key={opt.value}
@@ -258,7 +357,6 @@ const SEED_OPTIONS: { value: SeedMode; label: string }[] = [
   { value: 'random',  label: 'Aleatorio'  },
 ];
 
-/** Card de un grupo con su lista de seed rows. */
 function GroupCard({ group }: { group: BracketGroup }) {
   return (
     <View style={s.groupCard}>
@@ -268,7 +366,8 @@ function GroupCard({ group }: { group: BracketGroup }) {
   );
 }
 
-/** Fila individual: seed # · avatar · nombre · record. */
+const TOP_SEED_GOLD = '#f6c878';
+
 function SeedRow({ team }: { team: SeededTeam }) {
   const seedColor = team.isTopSeed ? TOP_SEED_GOLD : 'rgba(246,246,248,0.45)';
   const nameColor = team.isTopSeed ? TOP_SEED_GOLD : '#f6f6f8';
@@ -278,14 +377,7 @@ function SeedRow({ team }: { team: SeededTeam }) {
       style={[s.seedRow, team.isTopSeed && s.seedRowTop]}
       accessibilityLabel={`Seed ${team.seed}: ${team.name}, record ${team.record}`}>
       <Txt style={[s.seedNum, { color: seedColor }]}>#{team.seed}</Txt>
-      <View
-        style={[
-          s.seedAvatar,
-          {
-            backgroundColor: withAlpha(team.color, 0.18),
-            borderColor:     withAlpha(team.color, 0.5),
-          },
-        ]}>
+      <View style={[s.seedAvatar, { backgroundColor: withAlpha(team.color, 0.18), borderColor: withAlpha(team.color, 0.5) }]}>
         <Txt style={[s.seedAvatarText, { color: team.color }]}>{team.initials}</Txt>
       </View>
       <Txt style={[s.seedName, { color: nameColor, flex: 1 }]} numberOfLines={1}>
@@ -296,50 +388,78 @@ function SeedRow({ team }: { team: SeededTeam }) {
   );
 }
 
-const TOP_SEED_GOLD = '#f6c878';
-
 /* ═══════════════════════════════════════════════════════════════════
-   Vista: Cuadro publicado — éxito (Figma 633:29507)
+   Sub-componentes — Vista C (publicado)
 ═══════════════════════════════════════════════════════════════════ */
 
-interface PublishedViewProps {
-  event: LeagueEvent | null;
-  onView?: () => void;
+function SectionEyebrow({ label }: { label: string }) {
+  return (
+    <View style={s.eyebrowRow}>
+      <View style={s.eyebrowDash} />
+      <Txt style={s.eyebrowText}>{label}</Txt>
+    </View>
+  );
 }
 
-function PublishedView({ event, onView }: PublishedViewProps) {
-  const teamsCount = event?.teamsLabel?.match(/\d+/)?.[0] ?? '—';
-  const startDate  = event?.dateLabel?.replace(/^Cierra\s+/i, '') ?? '—';
+function GroupStandingsCard({ group }: { group: StandingGroup }) {
+  return (
+    <View style={s.standingsCard}>
+      {/* Cabecera: nombre del grupo + columnas de estadísticas */}
+      <View style={s.standingsHeader}>
+        <Txt style={[s.colHeaderGroup, { flex: 1 }]}>{group.name}</Txt>
+        <Txt style={s.colHeader}>PJ</Txt>
+        <Txt style={s.colHeader}>V</Txt>
+        <Txt style={s.colHeader}>D</Txt>
+        <Txt style={s.colHeader}>PTS</Txt>
+      </View>
+      {group.teams.map((t, i) => (
+        <StandingTeamRow key={t.id} team={t} rank={i + 1} />
+      ))}
+    </View>
+  );
+}
+
+function StandingTeamRow({ team, rank }: { team: StandingTeam; rank: number }) {
+  const qualified = rank <= 2;
+  const rankColor = qualified ? '#5fe49a' : 'rgba(246,246,248,0.4)';
+  const nameColor = qualified ? TOP_SEED_GOLD : '#f6f6f8';
 
   return (
-    <View style={s.publishedRoot}>
-      {/* Ícono verde con glow */}
-      <View style={s.publishedIconWrap}>
-        <IconCheck size={34} color="#34d77f" strokeWidth={2.5} />
+    <View
+      style={[s.standingRow, qualified && s.standingRowQ]}
+      accessibilityLabel={`Posición ${rank}: ${team.name}, ${team.pts} puntos`}>
+      <Txt style={[s.standingRank, { color: rankColor }]}>{rank}</Txt>
+      <View style={[s.standingAvatar, { backgroundColor: withAlpha(team.color, 0.18), borderColor: withAlpha(team.color, 0.5) }]}>
+        <Txt style={[s.standingAvatarText, { color: team.color }]}>{team.initials}</Txt>
       </View>
+      <Txt style={[s.standingName, { color: nameColor }]} numberOfLines={1}>{team.name}</Txt>
+      <Txt style={s.statCell}>{team.pj}</Txt>
+      <Txt style={s.statCell}>{team.v}</Txt>
+      <Txt style={s.statCell}>{team.d}</Txt>
+      <Txt style={qualified ? [s.statCell, s.statCellQ] : s.statCell}>{team.pts}</Txt>
+    </View>
+  );
+}
 
-      <Txt style={s.publishedTitle}>¡Cuadro publicado!</Txt>
+function MatchupCard({ team1, team2 }: { team1: MatchupTeam; team2: MatchupTeam }) {
+  return (
+    <View style={s.matchupCard}>
+      <MatchupTeamRow team={team1} />
+      <View style={s.matchupDivider} />
+      <MatchupTeamRow team={team2} />
+    </View>
+  );
+}
 
-      <Txt style={s.publishedDesc}>
-        {`${teamsCount} equipos notificados · calendario agendado.\nEl cuadro ya es visible en "Ver evento". Inicia ${startDate}.`}
-      </Txt>
-
-      <Pressable
-        style={({ pressed }) => [s.publishedBtn, pressed && { opacity: 0.85 }]}
-        onPress={onView}
-        accessibilityRole="button"
-        accessibilityLabel="Ver cuadro publicado">
-        <Svg style={StyleSheet.absoluteFill} width={320} height={52}>
-          <Defs>
-            <LinearGradient id="viewGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor="#ff3b52" />
-              <Stop offset="1" stopColor="#e11d36" />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="320" height="52" fill="url(#viewGrad)" />
-        </Svg>
-        <Txt style={s.publishedBtnLabel}>Ver cuadro publicado</Txt>
-      </Pressable>
+function MatchupTeamRow({ team }: { team: MatchupTeam }) {
+  return (
+    <View style={s.matchupRow}>
+      <View style={[s.matchupAvatar, { backgroundColor: withAlpha(team.color, 0.18), borderColor: withAlpha(team.color, 0.5) }]}>
+        <Txt style={[s.matchupAvatarText, { color: team.color }]}>{team.initials}</Txt>
+      </View>
+      <Txt style={s.matchupSeedLabel}>{team.seedLabel}</Txt>
+      <Txt style={s.matchupTeamName} numberOfLines={1}>{team.name}</Txt>
+      <Txt style={s.matchupScore}>–</Txt>
     </View>
   );
 }
@@ -368,7 +488,7 @@ export function BracketFooter({
         onPress={onRegenerate}
         accessibilityRole="button"
         accessibilityLabel="Regenerar cuadro">
-        <Txt style={s.footerLabel}>↻  Regenerar</Txt>
+        <Txt style={s.footerLabelGhost}>↻  Regenerar</Txt>
       </Pressable>
 
       <Pressable
@@ -378,12 +498,12 @@ export function BracketFooter({
         accessibilityLabel="Publicar cuadro">
         <Svg style={StyleSheet.absoluteFill} width={200} height={54}>
           <Defs>
-            <LinearGradient id="publishGrad" x1="0" y1="0" x2="0" y2="1">
+            <LinearGradient id="pubFooterGrad" x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor="#ff3b52" />
               <Stop offset="1" stopColor="#e11d36" />
             </LinearGradient>
           </Defs>
-          <Rect x="0" y="0" width="200" height="54" fill="url(#publishGrad)" />
+          <Rect x="0" y="0" width="200" height="54" fill="url(#pubFooterGrad)" />
         </Svg>
         <Txt style={s.footerLabel}>✓  Publicar cuadro</Txt>
       </Pressable>
@@ -420,7 +540,6 @@ const s = StyleSheet.create({
     lineHeight: 18,
     color: '#f6c878',
   },
-
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -438,7 +557,6 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(246,246,248,0.5)',
   },
-
   amberBadge: {
     backgroundColor: `${AMBER}0.14)`,
     borderWidth: 1,
@@ -452,14 +570,12 @@ const s = StyleSheet.create({
     fontSize: 11,
     color: '#f6c878',
   },
-
   eyebrow: {
     fontFamily: fonts.glassBodyBold,
     fontSize: 11,
     letterSpacing: 1.2,
     color: 'rgba(246,246,248,0.35)',
   },
-
   skeletonCard: {
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
@@ -504,14 +620,12 @@ const s = StyleSheet.create({
     fontSize: 11.5,
     color: '#f6c878',
   },
-
   sectionLabel: {
     fontFamily: fonts.glassBodyBold,
     fontSize: 11,
     letterSpacing: 1.2,
     color: 'rgba(246,246,248,0.45)',
   },
-
   segmented: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.05)',
@@ -521,7 +635,6 @@ const s = StyleSheet.create({
     padding: SEG_PADDING,
     gap: SEG_GAP,
   },
-  /* Píldora absoluta que se desliza bajo las opciones */
   segPill: {
     position: 'absolute',
     top: SEG_PADDING,
@@ -534,7 +647,6 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  /* Opciones: transparentes, texto sobre la píldora con zIndex */
   segOption: {
     flex: 1,
     zIndex: 1,
@@ -544,14 +656,12 @@ const s = StyleSheet.create({
   },
   segLabel:       { fontFamily: fonts.glassBodySemibold, fontSize: 13.5, color: 'rgba(246,246,248,0.55)' },
   segLabelActive: { fontFamily: fonts.glassBodyBold,     fontSize: 13.5, color: '#f6f6f8' },
-
   seedingDesc: {
     fontFamily: fonts.glassBodyMedium,
     fontSize: 12,
     lineHeight: 17,
     color: 'rgba(246,246,248,0.5)',
   },
-
   groupCard: {
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
@@ -569,7 +679,6 @@ const s = StyleSheet.create({
     color: 'rgba(246,246,248,0.7)',
     marginBottom: 4,
   },
-
   seedRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -579,7 +688,7 @@ const s = StyleSheet.create({
     borderRadius: 8,
   },
   seedRowTop: { backgroundColor: 'rgba(246,200,120,0.1)' },
-  seedNum: { fontFamily: fonts.glassBodyBold, fontSize: 12, width: 24 },
+  seedNum:    { fontFamily: fonts.glassBodyBold, fontSize: 12, width: 24 },
   seedAvatar: {
     width: 26,
     height: 26,
@@ -595,7 +704,6 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(246,246,248,0.4)',
   },
-
   playoffsLabel: {
     fontFamily: fonts.glassBodyBold,
     fontSize: 11,
@@ -616,7 +724,7 @@ const s = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 22,
     paddingTop: 14,
-    backgroundColor: 'rgba(9,9,11,0.88)',
+    backgroundColor: 'rgba(9,9,11,0.92)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.07)',
   },
@@ -651,62 +759,169 @@ const s = StyleSheet.create({
     color: '#ffffff',
     letterSpacing: 0.3,
   },
-  pressed: { opacity: 0.8 },
-
-  /* ── Éxito: cuadro publicado ── */
-  publishedRoot: {
-    alignItems: 'center',
-    paddingTop: 40,
-    gap: 18,
-  },
-  publishedIconWrap: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: 'rgba(52,215,127,0.14)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(52,215,127,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: 'rgba(52,215,127,1)',
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 10,
-  },
-  publishedTitle: {
-    fontFamily: fonts.glassTitle,
-    fontSize: 26,
-    color: '#f6f6f8',
-    textAlign: 'center',
-  },
-  publishedDesc: {
-    fontFamily: fonts.glassBodyMedium,
-    fontSize: 14,
-    lineHeight: 20,
-    color: 'rgba(246,246,248,0.55)',
-    textAlign: 'center',
-  },
-  publishedBtn: {
-    alignSelf: 'stretch',
-    height: 52,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    shadowColor: '#ff2d46',
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-    marginTop: 6,
-  },
-  publishedBtnLabel: {
+  footerLabelGhost: {
     fontFamily: fonts.glassBodyBold,
     fontSize: 15,
-    color: '#ffffff',
+    color: 'rgba(246,246,248,0.75)',
     letterSpacing: 0.3,
+  },
+  pressed: { opacity: 0.8 },
+
+  /* ── Vista C: cuadro publicado ── */
+
+  pubPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(52,215,127,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(52,215,127,0.4)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  pubPillDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#5fe49a',
+  },
+  pubPillText: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 11.5,
+    color: '#5fe49a',
+  },
+  eyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  eyebrowDash: {
+    width: 12,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: '#ff2d46',
+  },
+  eyebrowText: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 11.5,
+    letterSpacing: 1,
+    color: 'rgba(246,246,248,0.6)',
+  },
+  roundLabel: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 10.5,
+    letterSpacing: 1,
+    color: 'rgba(246,246,248,0.4)',
+  },
+  standingsCard: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
+    gap: 4,
+  },
+  standingsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 6,
+  },
+  colHeaderGroup: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 12.5,
+    letterSpacing: 1,
+    color: 'rgba(246,246,248,0.7)',
+  },
+  colHeader: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 12,
+    color: 'rgba(246,246,248,0.55)',
+    textAlign: 'center',
+    width: 26,
+  },
+  standingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  standingRowQ: { backgroundColor: 'rgba(52,215,127,0.08)' },
+  standingRank: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 12,
+    width: 12,
+  },
+  standingAvatar: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  standingAvatarText: { fontFamily: fonts.glassBodyBold, fontSize: 9.5 },
+  standingName: {
+    flex: 1,
+    fontFamily: fonts.glassBodySemibold,
+    fontSize: 13,
+  },
+  statCell: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 12,
+    color: 'rgba(246,246,248,0.55)',
+    textAlign: 'center',
+    width: 26,
+  },
+  statCellQ: {
+    fontFamily: fonts.glassBodyBold,
+    color: '#5fe49a',
+  },
+  matchupCard: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+  },
+  matchupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingVertical: 8,
+  },
+  matchupDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  matchupAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchupAvatarText: { fontFamily: fonts.glassBodyBold, fontSize: 8.5 },
+  matchupSeedLabel: {
+    fontFamily: fonts.glassBodyMedium,
+    fontSize: 11,
+    color: 'rgba(246,246,248,0.4)',
+  },
+  matchupTeamName: {
+    flex: 1,
+    fontFamily: fonts.glassBodySemibold,
+    fontSize: 13.5,
+    color: '#f6f6f8',
+  },
+  matchupScore: {
+    fontFamily: fonts.glassBodyBold,
+    fontSize: 14,
+    color: 'rgba(246,246,248,0.35)',
   },
 });
