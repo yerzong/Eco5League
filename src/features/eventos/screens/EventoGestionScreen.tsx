@@ -15,15 +15,18 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Ellipse, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { Fab, Txt } from '@/design-system/components';
+import { ConfirmDialog, Fab, Txt } from '@/design-system/components';
 import {
   IconChevronLeft,
   IconPencil,
+  IconRefresh,
 } from '@/design-system/icons';
 import { fonts } from '@/design-system/tokens/typography';
 import type { EventTeam, LeagueEvent } from '@/services';
 import { AgregarStaffSheet } from './AgregarStaffSheet';
 import { EditarEventoModal } from './EditarEventoScreen';
+import { BracketFooter, EventoBracketsTab } from './EventoBracketsTab';
+import { PublicarCuadroSheet } from './PublicarCuadroSheet';
 import { EventoEquiposTab } from './EventoEquiposTab';
 import { EventoStaffTab } from './EventoStaffTab';
 import { EventoTeamDetailModal } from './EventoTeamDetailModal';
@@ -54,12 +57,21 @@ export function EventoGestionModal({
   const [detailTeam, setDetailTeam] = useState<EventTeam | null>(null);
   const [addingStaff, setAddingStaff] = useState(false);
   const [staffRefreshKey, setStaffRefreshKey] = useState(0);
+  const [regenConfirmVisible, setRegenConfirmVisible] = useState(false);
+  const [publishSheetVisible, setPublishSheetVisible] = useState(false);
+  const [bracketPublished, setBracketPublished] = useState(false);
   const insets = useSafeAreaInsets();
   const activeIndex = TABS.indexOf(tab);
 
   // Al cerrarse la gestión, reseteamos overlays para la próxima apertura.
   useEffect(() => {
-    if (!visible) { setEditing(false); setDetailTeam(null); setAddingStaff(false); }
+    if (!visible) {
+      setEditing(false);
+      setDetailTeam(null);
+      setAddingStaff(false);
+      setRegenConfirmVisible(false);
+      setPublishSheetVisible(false);
+    }
   }, [visible]);
 
   // Subrayado deslizante: medimos cada tab y animamos un indicador único.
@@ -159,7 +171,14 @@ export function EventoGestionModal({
             </View>
 
             <ScrollView
-              contentContainerStyle={gs.scroll}
+              contentContainerStyle={[
+                gs.scroll,
+                tab === 'Brackets' &&
+                  !bracketPublished &&
+                  event?.status !== 'inscripcion' &&
+                  event?.status !== 'proximo' &&
+                  { paddingBottom: 200 },
+              ]}
               showsVerticalScrollIndicator={false}>
               {/* Banner evento (Figma 635:3570) */}
               <EvBanner event={event} />
@@ -196,6 +215,8 @@ export function EventoGestionModal({
                   <EventoEquiposTab event={event} onTeamDetail={setDetailTeam} />
                 ) : tab === 'Staff' ? (
                   <EventoStaffTab event={event} refreshKey={staffRefreshKey} />
+                ) : tab === 'Brackets' ? (
+                  <EventoBracketsTab event={event} published={bracketPublished} />
                 ) : (
                   <Placeholder tab={tab} />
                 )}
@@ -204,6 +225,45 @@ export function EventoGestionModal({
           </SafeAreaView>
         </View>
       </SafeAreaProvider>
+
+      {/* Footer de brackets — visible solo cuando el cuadro está generado y no publicado */}
+      {tab === 'Brackets' &&
+       !bracketPublished &&
+       event?.status !== 'inscripcion' &&
+       event?.status !== 'proximo' ? (
+        <BracketFooter
+          bottomInset={insets.bottom}
+          onRegenerate={() => setRegenConfirmVisible(true)}
+          onPublish={() => setPublishSheetVisible(true)}
+        />
+      ) : null}
+
+      {/* Modal de confirmación "Regenerar cuadro" (ámbar) */}
+      <ConfirmDialog
+        visible={regenConfirmVisible}
+        icon={<IconRefresh size={26} color="#f6a623" strokeWidth={1.8} />}
+        iconBg="rgba(246,166,35,0.14)"
+        iconBorder="rgba(246,166,35,0.4)"
+        title="¿Regenerar cuadro?"
+        body="Se recalculará el seeding y se reorganizarán los grupos. Esta acción no se puede deshacer."
+        confirmLabel="Regenerar"
+        confirmGradient={['#F6B833', '#D98C0D']}
+        confirmShadowColor="rgba(246,166,35,0.4)"
+        confirmTextDark
+        onCancel={() => setRegenConfirmVisible(false)}
+        onConfirm={() => setRegenConfirmVisible(false)}
+      />
+
+      {/* Bottom sheet "Publicar cuadro" */}
+      {publishSheetVisible ? (
+        <PublicarCuadroSheet
+          onPublish={() => {
+            setBracketPublished(true);
+            setPublishSheetVisible(false);
+          }}
+          onClose={() => setPublishSheetVisible(false)}
+        />
+      ) : null}
 
       {/* FAB "Agregar staff" — solo visible en el tab Staff */}
       {tab === 'Staff' ? (

@@ -67,5 +67,7 @@ export type { BottomSheetHandle } from './BottomSheet';
 export { OtpInput } from './OtpInput';
 export { PasswordRules } from './PasswordRules';
 export { ConfirmModal } from './ConfirmModal';
+export { ConfirmDialog } from './ConfirmDialog';
+export type { ConfirmDialogProps } from './ConfirmDialog';
 export { ProgressBar } from './ProgressBar';
 export { EventoPendingTeamCard } from './EventoPendingTeamCard';
